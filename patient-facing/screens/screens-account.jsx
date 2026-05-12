@@ -83,12 +83,7 @@ function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation 
 }
 
 function SectionHeader({ label, count, bare }) {
-  const h2 = (
-    <h2 style={{ fontSize: 13, fontWeight: 600, margin: 0, color: "var(--ink-2)",
-                 textTransform: "uppercase", letterSpacing: "0.06em" }}>
-      {label} <span style={{ color: "var(--ink-3)", marginLeft: 4 }}>{count}</span>
-    </h2>
-  );
+  const h2 = <h2 className="eyebrow">{label} <span className="count">{count}</span></h2>;
   return bare ? h2 : <div style={{ margin: "8px 0 12px" }}>{h2}</div>;
 }
 
@@ -115,14 +110,14 @@ function DateBlock({ dateStr, accent }) {
   );
 }
 
-const MUTED_TAG = { background: "var(--surface-2)", color: "var(--ink-2)" };
-
 function StatusTag({ status }) {
   if (status === "confirmed") return <span className="tag tag-pos"><span className="dot" /> Confirmed</span>;
-  if (status === "declined")  return <span className="tag" style={MUTED_TAG}>Declined by office</span>;
-  if (status === "cancelled") return <span className="tag" style={MUTED_TAG}>Cancelled</span>;
+  if (status === "declined")  return <span className="tag tag-muted">Declined by office</span>;
+  if (status === "cancelled") return <span className="tag tag-muted">Cancelled</span>;
   return <span className="tag tag-warn"><span className="dot" /> Awaiting confirmation</span>;
 }
+
+const ghostBtnSm = { height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 };
 
 function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
   const p = physicianById(visit.physicianId);
@@ -154,9 +149,7 @@ function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
         {status === "pending" && (
           <>
             {onView && <button className="btn btn-primary" onClick={onView}>View request</button>}
-            <button className="btn btn-ghost"
-              style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}
-              onClick={() => onCancel && onCancel(visit)}>
+            <button className="btn btn-ghost" style={ghostBtnSm} onClick={() => onCancel(visit)}>
               Withdraw request
             </button>
           </>
@@ -164,17 +157,13 @@ function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
         {status === "confirmed" && (
           <>
             <button className="btn btn-secondary">Reschedule</button>
-            <button className="btn btn-ghost"
-              style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}
-              onClick={() => onCancel && onCancel(visit)}>
+            <button className="btn btn-ghost" style={ghostBtnSm} onClick={() => onCancel(visit)}>
               Cancel
             </button>
           </>
         )}
         {isInactive && (
-          <button className="btn btn-secondary" onClick={() => onBookAgain && onBookAgain()}>
-            Book another
-          </button>
+          <button className="btn btn-secondary" onClick={onBookAgain}>Book another</button>
         )}
       </div>
     </div>

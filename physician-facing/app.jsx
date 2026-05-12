@@ -7,15 +7,7 @@ function AdminBar() {
         <div className="logo">
           <div className="logo-dot" />
           vero
-          <span style={{
-            marginLeft: 10, padding: "2px 8px",
-            fontSize: 11, fontWeight: 600, letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            background: "var(--surface-2)", color: "var(--ink-2)",
-            borderRadius: 6,
-          }}>
-            Admin Console
-          </span>
+          <span className="admin-badge">Admin Console</span>
         </div>
         <div className="spacer" />
         <div className="appbar-right">
@@ -29,6 +21,17 @@ function AdminBar() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SideSelect({ label, value, onChange, children }) {
+  return (
+    <div className="admin-side-section">
+      <div className="admin-side-label">{label}</div>
+      <select className="select" style={{ width: "100%" }} value={value} onChange={onChange}>
+        {children}
+      </select>
     </div>
   );
 }
@@ -163,27 +166,19 @@ function AdminApp() {
             <NavItem id="cancelled" label="Cancelled"    count={counts.cancelled} />
           </div>
 
-          <div className="admin-side-section">
-            <div className="admin-side-label">Physician</div>
-            <select className="select" style={{ width: "100%" }}
-              value={physicianId}
-              onChange={(e) => { setPhysicianId(e.target.value); setSelectedId(null); }}>
-              <option value="all">All physicians</option>
-              {physiciansWithBookings.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
+          <SideSelect label="Physician" value={physicianId}
+            onChange={(e) => { setPhysicianId(e.target.value); setSelectedId(null); }}>
+            <option value="all">All physicians</option>
+            {physiciansWithBookings.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </SideSelect>
 
-          <div className="admin-side-section">
-            <div className="admin-side-label">Sort by</div>
-            <select className="select" style={{ width: "100%" }}
-              value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="submitted">Newest submission</option>
-              <option value="appointment">Appointment date</option>
-              <option value="severity">Severity</option>
-            </select>
-          </div>
+          <SideSelect label="Sort by" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+            <option value="submitted">Newest submission</option>
+            <option value="appointment">Appointment date</option>
+            <option value="severity">Severity</option>
+          </SideSelect>
         </aside>
 
         <main className="admin-main">

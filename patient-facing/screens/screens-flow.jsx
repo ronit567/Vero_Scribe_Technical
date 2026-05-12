@@ -22,17 +22,12 @@ function shortDate(iso) {
 
 function ApptPill({ physician, draft }) {
   return (
-    <div style={{
-      display: "inline-flex", alignItems: "center", gap: 10,
-      padding: "8px 12px", marginBottom: 18,
-      background: "var(--surface)", border: "1px solid var(--line)",
-      borderRadius: 999, fontSize: 13,
-    }}>
-      <b style={{ color: "var(--ink-0)" }}>{physician.name}</b>
-      <span style={{ color: "var(--ink-4)" }}>•</span>
-      <span className="mono" style={{ color: "var(--ink-1)" }}>{shortDate(draft.dateISO)}</span>
-      <span style={{ color: "var(--ink-4)" }}>•</span>
-      <span className="mono" style={{ color: "var(--ink-1)" }}>{draft.time}</span>
+    <div className="appt-pill">
+      <b>{physician.name}</b>
+      <span className="sep">•</span>
+      <span className="mono">{shortDate(draft.dateISO)}</span>
+      <span className="sep">•</span>
+      <span className="mono">{draft.time}</span>
     </div>
   );
 }
@@ -105,37 +100,15 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
             maxLength={300} />
         </FormBlock>
 
-        <FormBlock label="Current medications"
-          trailing={
-            <ToggleNone
-              active={draft.medications === "None"}
-              label="I don't take any"
-              onClick={() => set({ medications: draft.medications === "None" ? "" : "None" })}
-            />
-          }>
-          <textarea className="textarea"
-            placeholder="List medication, dose, and frequency. e.g. Lisinopril 10 mg daily; Atorvastatin 20 mg nightly."
-            value={draft.medications && draft.medications !== "None" ? draft.medications : ""}
-            disabled={draft.medications === "None"}
-            onChange={(e) => set({ medications: e.target.value })}
-            maxLength={500} />
-        </FormBlock>
+        <NoneField label="Current medications"
+          noneValue="None" noneLabel="I don't take any"
+          placeholder="List medication, dose, and frequency. e.g. Lisinopril 10 mg daily; Atorvastatin 20 mg nightly."
+          value={draft.medications} onChange={(v) => set({ medications: v })} maxLength={500} />
 
-        <FormBlock label="Allergies" last
-          trailing={
-            <ToggleNone
-              active={draft.allergies === "NKDA"}
-              label="No known allergies"
-              onClick={() => set({ allergies: draft.allergies === "NKDA" ? "" : "NKDA" })}
-            />
-          }>
-          <textarea className="textarea"
-            placeholder="Include drug, food, or environmental allergies and reaction type. e.g. Penicillin — hives."
-            value={draft.allergies && draft.allergies !== "NKDA" ? draft.allergies : ""}
-            disabled={draft.allergies === "NKDA"}
-            onChange={(e) => set({ allergies: e.target.value })}
-            maxLength={300} />
-        </FormBlock>
+        <NoneField label="Allergies" last
+          noneValue="NKDA" noneLabel="No known allergies"
+          placeholder="Include drug, food, or environmental allergies and reaction type. e.g. Penicillin — hives."
+          value={draft.allergies} onChange={(v) => set({ allergies: v })} maxLength={300} />
       </div>
 
       <div className="footbar">
@@ -207,6 +180,22 @@ function ToggleNone({ active, label, onClick }) {
   );
 }
 
+function NoneField({ label, last, noneValue, noneLabel, placeholder, value, onChange, maxLength }) {
+  const isNone = value === noneValue;
+  return (
+    <FormBlock label={label} last={last}
+      trailing={<ToggleNone active={isNone} label={noneLabel}
+        onClick={() => onChange(isNone ? "" : noneValue)} />}>
+      <textarea className="textarea"
+        placeholder={placeholder}
+        value={isNone ? "" : (value || "")}
+        disabled={isNone}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={maxLength} />
+    </FormBlock>
+  );
+}
+
 // ─── Review ─────────────────────────────────────────────────────
 
 function SumRow({ label, onChange, children }) {
@@ -217,6 +206,12 @@ function SumRow({ label, onChange, children }) {
       {onChange ? <button className="edit" onClick={onChange}>Change</button> : <div />}
     </div>
   );
+}
+
+function Field({ label, value, bold, capitalize }) {
+  if (!value) return null;
+  const v = bold ? <b style={capitalize ? { textTransform: "capitalize" } : null}>{value}</b> : value;
+  return <div><span className="muted">{label}:</span> {v}</div>;
 }
 
 function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting }) {
@@ -267,14 +262,10 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
         {hasClinical && (
           <SumRow label="Clinical context" onChange={() => onJumpTo("reason")}>
             <div style={{ fontSize: 13 }}>
-              {draft.duration && <div><span className="muted">Duration:</span> <b>{draft.duration}</b></div>}
-              {draft.severity && <div><span className="muted">Severity:</span> <b style={{ textTransform: "capitalize" }}>{draft.severity}</b></div>}
-              {draft.trend && <div><span className="muted">Trend:</span> <b style={{ textTransform: "capitalize" }}>{draft.trend}</b></div>}
-              {draft.priorTreatment && (
-                <div style={{ marginTop: 4, maxWidth: 560 }}>
-                  <span className="muted">Tried so far:</span> {draft.priorTreatment}
-                </div>
-              )}
+              <Field label="Duration" value={draft.duration} bold />
+              <Field label="Severity" value={draft.severity} bold capitalize />
+              <Field label="Trend"    value={draft.trend} bold capitalize />
+              <Field label="Tried so far" value={draft.priorTreatment} />
             </div>
           </SumRow>
         )}
@@ -282,16 +273,9 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
         {hasMedical && (
           <SumRow label="Medical background" onChange={() => onJumpTo("reason")}>
             <div style={{ fontSize: 13 }}>
-              {draft.medications && (
-                <div style={{ maxWidth: 560 }}>
-                  <span className="muted">Medications:</span> {draft.medications}
-                </div>
-              )}
-              {draft.allergies && (
-                <div style={{ maxWidth: 560, marginTop: 4 }}>
-                  <span className="muted">Allergies:</span> {draft.allergies === "NKDA" ? "No known drug allergies" : draft.allergies}
-                </div>
-              )}
+              <Field label="Medications" value={draft.medications} />
+              <Field label="Allergies"
+                value={draft.allergies === "NKDA" ? "No known drug allergies" : draft.allergies} />
             </div>
           </SumRow>
         )}

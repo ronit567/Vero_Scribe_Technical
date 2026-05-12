@@ -58,19 +58,11 @@ function BrowseScreen({ filters, setFilters, onSelect }) {
           Available this week
         </button>
         <label className={"chip " + (filters.language && filters.language !== "Any language" ? "is-active" : "")}
-          style={{ paddingRight: 8, gap: 6, cursor: "pointer" }}>
+          style={{ cursor: "pointer" }}>
           <Icon name="language" size={13} />
-          <select
+          <select className="chip-select"
             value={filters.language || "Any language"}
-            onChange={(e) => setFilters({ ...filters, language: e.target.value })}
-            style={{
-              appearance: "none", border: 0, background: "transparent",
-              font: "inherit", color: "inherit", cursor: "pointer",
-              padding: 0, paddingRight: 14,
-              backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%235A6678' d='M0 0h10L5 6z'/></svg>\")",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right center",
-            }}>
+            onChange={(e) => setFilters({ ...filters, language: e.target.value })}>
             {languages.map((l) => <option key={l} value={l}>{l}</option>)}
           </select>
         </label>

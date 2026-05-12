@@ -2,8 +2,8 @@
 
 function StatusPill({ status }) {
   if (status === "confirmed") return <span className="tag tag-pos"><span className="dot" /> Confirmed</span>;
-  if (status === "declined")  return <span className="tag" style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}>Declined</span>;
-  if (status === "cancelled") return <span className="tag" style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}>Cancelled by patient</span>;
+  if (status === "declined")  return <span className="tag tag-muted">Declined</span>;
+  if (status === "cancelled") return <span className="tag tag-muted">Cancelled by patient</span>;
   return <span className="tag tag-warn"><span className="dot" /> Pending</span>;
 }
 
@@ -70,29 +70,19 @@ function QueueRow({ booking, selected, onSelect }) {
       <div className="avatar-sm">{initialsOf(patientName)}</div>
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{
-            fontSize: 14.5, fontWeight: 600, color: "var(--ink-0)",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 220,
-          }}>
-            {patientName}
-          </span>
+          <span className="pname">{patientName}</span>
           <StatusPill status={booking.status} />
           <SeverityBadge severity={intake.severity} />
         </div>
         <div className="meta-row">
           <span style={{ color: "var(--ink-1)" }}>
-            {(intake.reasonTitle || booking.reason || "Visit")}
+            {intake.reasonTitle || booking.reason || "Visit"}
           </span>
           <span className="sep">·</span>
           <span>{p ? p.name : "Unknown"}</span>
           <span className="sep">·</span>
           <span style={{ color: "var(--ink-3)" }}>{p ? p.specialty : ""}</span>
-          {intake.duration && (
-            <>
-              <span className="sep">·</span>
-              <span>{intake.duration}</span>
-            </>
-          )}
+          {intake.duration && <><span className="sep">·</span><span>{intake.duration}</span></>}
         </div>
       </div>
       <div className="right-col">
@@ -100,7 +90,7 @@ function QueueRow({ booking, selected, onSelect }) {
           {dayLabel} · {appt.time || booking.time}
           <div className="rel">{timeUntil(isoForDate)}</div>
         </div>
-        <span style={{ fontSize: 11.5, color: "var(--ink-3)" }}>
+        <span className="submitted">
           {booking.createdAt ? "submitted " + relativeTime(booking.createdAt) : ""}
         </span>
       </div>
