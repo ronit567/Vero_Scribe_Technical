@@ -104,7 +104,12 @@ function App() {
     time: null,
     reason: null,
     notes: "",
-    patientStatus: "returning",
+    duration: null,
+    severity: null,
+    trend: null,
+    priorTreatment: "",
+    medications: "",
+    allergies: "",
     contact: "Text",
   });
   const [submitting, setSubmitting] = React.useState(false);
@@ -151,7 +156,10 @@ function App() {
   const onStartOver = () => {
     setDraft({
       physicianId: null, visitType: null, dateISO: null, time: null,
-      reason: null, notes: "", patientStatus: "returning", contact: "Text",
+      reason: null, notes: "",
+      duration: null, severity: null, trend: null, priorTreatment: "",
+      medications: "", allergies: "",
+      contact: "Text",
     });
     setRequestId(null);
     go({ name: "browse" });

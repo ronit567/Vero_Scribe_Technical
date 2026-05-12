@@ -1,10 +1,3 @@
-// Screens: Browse + Physician Detail
-// (Uses globals: Icon, PhotoPlaceholder, Rating, PHYSICIANS, SPECIALTIES,
-//  slotsFor, toISO, addDays, formatDayLong, formatDateMonth)
-
-// ════════════════════════════════════════════════════════════════
-//  BROWSE
-// ════════════════════════════════════════════════════════════════
 
 function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
   const filtered = React.useMemo(() => {

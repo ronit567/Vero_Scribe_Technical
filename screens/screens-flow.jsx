@@ -7,6 +7,11 @@
 
 function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
   const canContinue = !!draft.reason;
+  const apptDate = draft.dateISO
+    ? new Date(draft.dateISO + "T00:00:00").toLocaleDateString(undefined,
+        { weekday: "short", month: "short", day: "numeric" })
+    : "";
+
   return (
     <div className="page">
       <button className="crumb" onClick={onBack}>
@@ -19,14 +24,34 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         <div>
           <h1 className="page-title">Tell us about your visit</h1>
           <p className="page-sub">
-            This helps {physician.name.split(" ")[1]}{" "}
-            prepare for your appointment.
+            A few quick details so {physician.name.split(" ")[1]} can prepare ahead of time.
           </p>
         </div>
       </div>
 
-      <div className="card card-pad">
-        <h3 className="section-h" style={{ marginBottom: 12 }}>What is the reason for your visit?</h3>
+      {/* Appointment context strip */}
+      <div className="card" style={{
+        padding: "12px 16px", marginBottom: 16,
+        display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+        background: "var(--surface-2)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5 }}>
+          <Icon name="user" size={14} />
+          <b>{physician.name}</b>
+          <span className="muted">· {physician.specialty}</span>
+        </div>
+        <div style={{ width: 1, height: 16, background: "var(--line)" }} />
+        <div className="mono" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "var(--ink-1)" }}>
+          <Icon name="calendar" size={13} /> {apptDate}
+          <span style={{ color: "var(--ink-3)" }}>·</span>
+          <Icon name="clock" size={13} /> {draft.time}
+        </div>
+      </div>
+
+      <FormSection
+        step={1}
+        title="Reason for visit"
+        hint="Pick the option that best describes why you're coming in.">
         <div className="radio-cards">
           {REASONS.map((r) => (
             <button key={r.id}
@@ -40,9 +65,9 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
           ))}
         </div>
 
-        <div style={{ marginTop: 24 }} className="field">
+        <div style={{ marginTop: 20 }} className="field">
           <label className="field-label">
-            Briefly describe what's going on <span className="muted" style={{ fontWeight: 400 }}>(optional)</span>
+            Anything we should know? <span className="muted" style={{ fontWeight: 400 }}>Optional</span>
           </label>
           <textarea className="textarea"
             placeholder="e.g. Persistent cough for the past 10 days, worse at night. No fever."
@@ -53,38 +78,77 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
             {(draft.notes || "").length} / 500
           </div>
         </div>
+      </FormSection>
 
-        <div className="divider" />
+      <FormSection
+        step={2}
+        title="Clinical context"
+        hint="Helps your provider triage and prepare. All required.">
+        <FormField label="How long have you had this concern?">
+          <ChipGroup
+            options={["< 24 hours", "1–3 days", "4–7 days", "1–4 weeks", "1–3 months", "> 3 months"]}
+            value={draft.duration}
+            onChange={(v) => setDraft({ ...draft, duration: v })}
+          />
+        </FormField>
 
-        <div className="field" style={{ marginBottom: 16 }}>
-          <label className="field-label">Is this your first visit with this provider?</label>
-          <div className="row gap-2" style={{ marginTop: 4 }}>
-            <button
-              className={"chip " + (draft.patientStatus === "new" ? "is-active" : "")}
-              onClick={() => setDraft({ ...draft, patientStatus: "new" })}>
-              Yes — new patient
-            </button>
-            <button
-              className={"chip " + (draft.patientStatus === "returning" ? "is-active" : "")}
-              onClick={() => setDraft({ ...draft, patientStatus: "returning" })}>
-              No — returning patient
-            </button>
-          </div>
-        </div>
+        <FormField label="How severe is it right now?">
+          <ChipGroup
+            options={[
+              { id: "mild", label: "Mild", desc: "Noticeable, not limiting" },
+              { id: "moderate", label: "Moderate", desc: "Interferes with daily activities" },
+              { id: "severe", label: "Severe", desc: "Hard to function" },
+            ]}
+            value={draft.severity}
+            onChange={(v) => setDraft({ ...draft, severity: v })}
+          />
+        </FormField>
 
-        <div className="field">
-          <label className="field-label">Preferred contact for confirmation</label>
-          <div className="row gap-2" style={{ marginTop: 4 }}>
-            {["Text", "Email", "Phone call"].map((m) => (
-              <button key={m}
-                className={"chip " + (draft.contact === m ? "is-active" : "")}
-                onClick={() => setDraft({ ...draft, contact: m })}>
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+        <FormField label="Is it changing?">
+          <ChipGroup
+            options={[
+              { id: "improving", label: "Improving" },
+              { id: "same", label: "About the same" },
+              { id: "worsening", label: "Getting worse" },
+            ]}
+            value={draft.trend}
+            onChange={(v) => setDraft({ ...draft, trend: v })}
+          />
+        </FormField>
+
+        <FormField label="What have you tried so far?" optional>
+          <textarea className="textarea"
+            placeholder="e.g. OTC ibuprofen 400 mg twice daily, rest. Some short-term relief."
+            value={draft.priorTreatment || ""}
+            onChange={(e) => setDraft({ ...draft, priorTreatment: e.target.value })}
+            maxLength={300} />
+        </FormField>
+      </FormSection>
+
+      <FormSection
+        step={3}
+        title="Medical background"
+        hint="We'll save this to your profile so you don't have to enter it again.">
+        <NoneTextarea
+          label="Current medications"
+          noneValue="None"
+          noneLabel="I don't take any"
+          placeholder="List medication, dose, and frequency. e.g. Lisinopril 10 mg daily; Atorvastatin 20 mg nightly."
+          value={draft.medications}
+          onChange={(v) => setDraft({ ...draft, medications: v })}
+          maxLength={500}
+        />
+
+        <NoneTextarea
+          label="Allergies"
+          noneValue="NKDA"
+          noneLabel="No known allergies"
+          placeholder="Include drug, food, or environmental allergies and reaction type. e.g. Penicillin — hives."
+          value={draft.allergies}
+          onChange={(v) => setDraft({ ...draft, allergies: v })}
+          maxLength={300}
+        />
+      </FormSection>
 
       <div className="footbar">
         <div className="summary-text">
@@ -99,6 +163,80 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FormSection({ step, title, hint, children }) {
+  return (
+    <div className="card card-pad" style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: hint ? 4 : 14 }}>
+        <span style={{
+          width: 22, height: 22, borderRadius: "50%",
+          background: "var(--accent-tint)", color: "var(--accent-dark)",
+          fontSize: 12, fontWeight: 600,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+        }}>{step}</span>
+        <h3 className="section-h" style={{ margin: 0 }}>{title}</h3>
+      </div>
+      {hint && (
+        <p className="muted" style={{ margin: "0 0 16px 32px", fontSize: 13 }}>{hint}</p>
+      )}
+      {children}
+    </div>
+  );
+}
+
+function FormField({ label, optional, children }) {
+  return (
+    <div className="field" style={{ marginBottom: 18 }}>
+      <label className="field-label">
+        {label}
+        {optional && <span className="muted" style={{ fontWeight: 400, marginLeft: 6 }}>Optional</span>}
+      </label>
+      <div style={{ marginTop: 6 }}>{children}</div>
+    </div>
+  );
+}
+
+function ChipGroup({ options, value, onChange }) {
+  const items = options.map((o) => typeof o === "string" ? { id: o, label: o } : o);
+  return (
+    <div className="row gap-2" style={{ flexWrap: "wrap" }}>
+      {items.map((o) => (
+        <button key={o.id}
+          type="button"
+          className={"chip " + (value === o.id ? "is-active" : "")}
+          onClick={() => onChange(o.id)}
+          title={o.desc || undefined}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function NoneTextarea({ label, noneValue, noneLabel, placeholder, value, onChange, maxLength }) {
+  const isNone = value === noneValue;
+  return (
+    <div className="field" style={{ marginBottom: 18 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <label className="field-label" style={{ margin: 0 }}>{label}</label>
+        <button
+          type="button"
+          className={"chip " + (isNone ? "is-active" : "")}
+          style={{ height: 26, fontSize: 12.5 }}
+          onClick={() => onChange(isNone ? "" : noneValue)}>
+          {isNone ? <><Icon name="check" size={12} /> {noneLabel}</> : noneLabel}
+        </button>
+      </div>
+      <textarea className="textarea"
+        placeholder={placeholder}
+        value={isNone ? "" : (value || "")}
+        disabled={isNone}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={maxLength} />
     </div>
   );
 }
@@ -129,13 +267,10 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
       <div className="card">
         <div className="sum-row" style={{ gridTemplateColumns: "160px 1fr auto" }}>
           <div className="l">Provider</div>
-          <div className="v" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <PhotoPlaceholder label="MD" style={{ width: 44, height: 44, borderRadius: "50%" }} />
-            <div>
-              <div><b>{physician.name}</b></div>
-              <div className="muted" style={{ fontSize: 13 }}>
-                {physician.credentials} · {physician.specialty}
-              </div>
+          <div className="v">
+            <div><b>{physician.name}</b></div>
+            <div className="muted" style={{ fontSize: 13 }}>
+              {physician.credentials} · {physician.specialty}
             </div>
           </div>
           <button className="edit" onClick={() => onJumpTo("detail")}>Change</button>
@@ -169,6 +304,42 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
           </div>
           <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
         </div>
+
+        {(draft.duration || draft.severity || draft.trend || draft.priorTreatment) && (
+          <div className="sum-row">
+            <div className="l">Clinical context</div>
+            <div className="v" style={{ fontSize: 13 }}>
+              {draft.duration && <div><span className="muted">Duration:</span> <b>{draft.duration}</b></div>}
+              {draft.severity && <div><span className="muted">Severity:</span> <b style={{ textTransform: "capitalize" }}>{draft.severity}</b></div>}
+              {draft.trend && <div><span className="muted">Trend:</span> <b style={{ textTransform: "capitalize" }}>{draft.trend}</b></div>}
+              {draft.priorTreatment && (
+                <div style={{ marginTop: 4, maxWidth: 560 }}>
+                  <span className="muted">Tried so far:</span> {draft.priorTreatment}
+                </div>
+              )}
+            </div>
+            <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
+          </div>
+        )}
+
+        {(draft.medications || draft.allergies) && (
+          <div className="sum-row">
+            <div className="l">Medical background</div>
+            <div className="v" style={{ fontSize: 13 }}>
+              {draft.medications && (
+                <div style={{ maxWidth: 560 }}>
+                  <span className="muted">Medications:</span> {draft.medications}
+                </div>
+              )}
+              {draft.allergies && (
+                <div style={{ maxWidth: 560, marginTop: 4 }}>
+                  <span className="muted">Allergies:</span> {draft.allergies === "NKDA" ? "No known drug allergies" : draft.allergies}
+                </div>
+              )}
+            </div>
+            <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
+          </div>
+        )}
 
         <div className="sum-row">
           <div className="l">Patient</div>

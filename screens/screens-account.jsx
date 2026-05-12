@@ -75,22 +75,17 @@ function VisitsScreen({ requestId, draft, onBookNew, onOpenConfirmation }) {
         </button>
       </div>
 
-      {/* Upcoming */}
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "8px 0 12px" }}>
-        <h2 style={{ fontSize: 17, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>
-          Upcoming <span className="muted" style={{ fontWeight: 400 }}>· {upcoming.length}</span>
-        </h2>
-      </div>
+      <SectionHeader label="Upcoming" count={upcoming.length} />
 
       {upcoming.length === 0 ? (
-        <div className="card card-pad" style={{ textAlign: "center", color: "var(--ink-2)" }}>
-          You don't have any upcoming visits.{" "}
-          <button className="btn btn-ghost" onClick={onBookNew} style={{ height: 28, padding: "0 8px" }}>
-            Book one →
+        <div className="card card-pad" style={{ textAlign: "center", color: "var(--ink-2)", padding: "40px 20px" }}>
+          <div style={{ fontSize: 14, marginBottom: 10 }}>You don't have any upcoming visits.</div>
+          <button className="btn btn-primary" onClick={onBookNew}>
+            <Icon name="plus" size={14} /> Book a visit
           </button>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {upcoming.map((v) => (
             <VisitCardUpcoming key={v.id}
               visit={v}
@@ -99,13 +94,10 @@ function VisitsScreen({ requestId, draft, onBookNew, onOpenConfirmation }) {
         </div>
       )}
 
-      {/* Past */}
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "32px 0 12px" }}>
-        <h2 style={{ fontSize: 17, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>
-          Past visits <span className="muted" style={{ fontWeight: 400 }}>· {PAST_VISITS.length}</span>
-        </h2>
-        <button className="btn btn-ghost" style={{ height: 32, padding: "0 10px" }}>
-          Download history <Icon name="download" size={14} />
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "36px 0 12px" }}>
+        <SectionHeader label="Past visits" count={PAST_VISITS.length} inline />
+        <button className="btn btn-ghost" style={{ height: 30, padding: "0 10px", fontSize: 13 }}>
+          Download history <Icon name="download" size={13} />
         </button>
       </div>
 
@@ -118,27 +110,74 @@ function VisitsScreen({ requestId, draft, onBookNew, onOpenConfirmation }) {
   );
 }
 
+function SectionHeader({ label, count, inline }) {
+  if (inline) {
+    return (
+      <h2 style={{ fontSize: 13, fontWeight: 600, margin: 0, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        {label} <span style={{ color: "var(--ink-3)", marginLeft: 4 }}>{count}</span>
+      </h2>
+    );
+  }
+  return (
+    <div style={{ margin: "8px 0 12px" }}>
+      <h2 style={{ fontSize: 13, fontWeight: 600, margin: 0, color: "var(--ink-2)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        {label} <span style={{ color: "var(--ink-3)", marginLeft: 4 }}>{count}</span>
+      </h2>
+    </div>
+  );
+}
+
+function parseVisitDate(s) {
+  const d = new Date(s);
+  if (isNaN(d)) return null;
+  return d;
+}
+
+function DateBlock({ dateStr, accent }) {
+  const d = parseVisitDate(dateStr);
+  if (!d) return null;
+  const month = d.toLocaleDateString(undefined, { month: "short" }).toUpperCase();
+  const day = d.getDate();
+  return (
+    <div style={{
+      width: 64, height: 64,
+      borderRadius: 10,
+      background: accent ? "var(--accent-tint)" : "var(--surface-2)",
+      border: "1px solid var(--line)",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+      flexShrink: 0,
+    }}>
+      <div style={{
+        fontSize: 10, fontWeight: 600, letterSpacing: "0.08em",
+        color: accent ? "var(--accent-dark)" : "var(--ink-2)",
+      }}>{month}</div>
+      <div style={{
+        fontSize: 22, fontWeight: 600, lineHeight: 1,
+        color: "var(--ink-0)", marginTop: 2,
+      }}>{day}</div>
+    </div>
+  );
+}
+
 function VisitCardUpcoming({ visit, onView }) {
   const p = physicianById(visit.physicianId);
   const pending = visit.status === "pending";
   return (
-    <div className="card" style={{ padding: 18, display: "grid", gridTemplateColumns: "72px 1fr auto", gap: 18, alignItems: "center" }}>
-      <PhotoPlaceholder label="MD" style={{ width: 72, height: 72, borderRadius: "50%" }} />
+    <div className="card" style={{ padding: 16, display: "grid", gridTemplateColumns: "64px 1fr auto", gap: 16, alignItems: "center" }}>
+      <DateBlock dateStr={visit.date} accent={!pending} />
       <div style={{ minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink-0)" }}>{p.name}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 15.5, fontWeight: 600, color: "var(--ink-0)" }}>{p.name}</div>
           {pending
             ? <span className="tag tag-warn"><span className="dot" /> Awaiting confirmation</span>
             : <span className="tag tag-pos"><span className="dot" /> Confirmed</span>}
         </div>
-        <div style={{ fontSize: 13.5, color: "var(--ink-1)", marginTop: 2 }}>
+        <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}>
           {p.specialty} · {visit.reason}
         </div>
         <div className="doc-meta-row" style={{ marginTop: 8 }}>
-          <span className="it mono" style={{ color: "var(--ink-0)", fontWeight: 500 }}>
-            <Icon name="calendar" size={13} /> {visit.date}
-          </span>
-          <span className="it mono" style={{ color: "var(--ink-0)", fontWeight: 500 }}>
+          <span className="it mono" style={{ color: "var(--ink-1)", fontWeight: 500 }}>
             <Icon name="clock" size={13} /> {visit.time}
           </span>
           <span className="it"><Icon name="pin" size={13} /> {p.location.split(" — ")[0]}</span>
@@ -154,7 +193,7 @@ function VisitCardUpcoming({ visit, onView }) {
           <>
             <button className="btn btn-secondary">Reschedule</button>
             <button className="btn btn-ghost" style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}>
-              Cancel visit
+              Cancel
             </button>
           </>
         )}
@@ -167,24 +206,26 @@ function VisitRowPast({ visit, divider }) {
   const p = physicianById(visit.physicianId);
   return (
     <div style={{
-      padding: "16px 20px",
-      display: "grid", gridTemplateColumns: "44px 1fr auto", gap: 16, alignItems: "center",
+      padding: "14px 18px",
+      display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "center",
       borderTop: divider ? "1px solid var(--line)" : "0",
     }}>
-      <PhotoPlaceholder label="MD" style={{ width: 44, height: 44, borderRadius: "50%" }} />
       <div style={{ minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--ink-0)" }}>{p.name}</div>
-          <span className="muted" style={{ fontSize: 13 }}>{p.specialty} · {visit.reason}</span>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          <span className="mono" style={{ fontSize: 12, color: "var(--ink-3)", minWidth: 84 }}>
+            {visit.date}
+          </span>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink-0)" }}>{p.name}</div>
+          <span className="muted" style={{ fontSize: 13 }}>· {p.specialty} · {visit.reason}</span>
         </div>
-        <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 4 }}>
-          <span className="mono" style={{ color: "var(--ink-1)" }}>{visit.date} · {visit.time}</span>
-          {" — "}
+        <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 3, paddingLeft: 92 }}>
           {visit.summary}
         </div>
       </div>
       <div style={{ display: "flex", gap: 6 }}>
-        <button className="btn btn-secondary">View summary</button>
+        <button className="btn btn-ghost" style={{ height: 30, padding: "0 10px", fontSize: 13 }}>
+          View summary <Icon name="arrow_r" size={12} />
+        </button>
       </div>
     </div>
   );
@@ -207,7 +248,14 @@ function ProfileScreen() {
 
       {/* Hero */}
       <div className="card" style={{ padding: 24, display: "grid", gridTemplateColumns: "120px 1fr auto", gap: 24, alignItems: "center" }}>
-        <PhotoPlaceholder image={`https://api.dicebear.com/9.x/avataaars/svg?seed=billsato&skinColor=brown&mouth=smile`} style={{ width: 120, height: 120, borderRadius: "50%" }} />
+        <div style={{
+          width: 120, height: 120, borderRadius: "50%",
+          background: "linear-gradient(135deg, var(--accent), var(--accent-dark))",
+          color: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 42, fontWeight: 600, letterSpacing: "-0.02em",
+          flexShrink: 0,
+        }}>BS</div>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>
