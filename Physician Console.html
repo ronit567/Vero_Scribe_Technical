@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>vero — request an appointment</title>
+  <title>vero — physician console</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="shared/styles.css" />
+  <link rel="stylesheet" href="physician-facing/styles.css" />
 </head>
 <body>
   <div id="root"></div>
@@ -21,10 +22,8 @@
   <script src="shared/data.js"></script>
   <script src="shared/store.js"></script>
   <script type="text/babel" src="shared/ui.jsx"></script>
-  <script type="text/babel" src="patient-facing/components/components.jsx"></script>
-  <script type="text/babel" src="patient-facing/screens/screens-browse.jsx"></script>
-  <script type="text/babel" src="patient-facing/screens/screens-flow.jsx"></script>
-  <script type="text/babel" src="patient-facing/screens/screens-account.jsx"></script>
-  <script type="text/babel" src="patient-facing/app.jsx"></script>
+  <script type="text/babel" src="physician-facing/screens/queue.jsx"></script>
+  <script type="text/babel" src="physician-facing/screens/appointment-detail.jsx"></script>
+  <script type="text/babel" src="physician-facing/app.jsx"></script>
 </body>
 </html>

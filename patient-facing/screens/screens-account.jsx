@@ -149,16 +149,24 @@ function DateBlock({ dateStr, accent }) {
 
 function VisitCardUpcoming({ visit, onView }) {
   const p = physicianById(visit.physicianId);
-  const pending = visit.status === "pending";
+  const status = visit.status || "pending";
+  const declined = status === "declined";
   return (
-    <div className="card" style={{ padding: 16, display: "grid", gridTemplateColumns: "64px 1fr auto", gap: 16, alignItems: "center" }}>
-      <DateBlock dateStr={visit.date} accent={!pending} />
+    <div className="card" style={{
+      padding: 16, display: "grid", gridTemplateColumns: "64px 1fr auto", gap: 16, alignItems: "center",
+      opacity: declined ? 0.7 : 1,
+    }}>
+      <DateBlock dateStr={visit.date} accent={status === "confirmed"} />
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <div style={{ fontSize: 15.5, fontWeight: 600, color: "var(--ink-0)" }}>{p.name}</div>
-          {pending
-            ? <span className="tag tag-warn"><span className="dot" /> Awaiting confirmation</span>
-            : <span className="tag tag-pos"><span className="dot" /> Confirmed</span>}
+          {status === "pending" && <span className="tag tag-warn"><span className="dot" /> Awaiting confirmation</span>}
+          {status === "confirmed" && <span className="tag tag-pos"><span className="dot" /> Confirmed</span>}
+          {status === "declined" && (
+            <span className="tag" style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}>
+              Declined by office
+            </span>
+          )}
         </div>
         <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}>
           {p.specialty} · {visit.reason}
@@ -171,18 +179,21 @@ function VisitCardUpcoming({ visit, onView }) {
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "end" }}>
-        {pending && onView && (
+        {status === "pending" && onView && (
           <button className="btn btn-primary" onClick={onView}>
             View request
           </button>
         )}
-        {!pending && (
+        {status === "confirmed" && (
           <>
             <button className="btn btn-secondary">Reschedule</button>
             <button className="btn btn-ghost" style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}>
               Cancel
             </button>
           </>
+        )}
+        {status === "declined" && (
+          <button className="btn btn-secondary">Book another</button>
         )}
       </div>
     </div>

@@ -227,8 +227,19 @@ function physicianById(id) {
   return PHYSICIANS.find((p) => p.id === id);
 }
 
+const DEMO_PATIENT = {
+  id: "p-bill",
+  name: "Bill Sato",
+  dob: "1989-08-04",
+  memberId: "BC-4837-2210",
+  phone: "•••• 4421",
+  email: "bill@verohealth.example",
+  initials: "BS",
+};
+
 window.PHYSICIANS = PHYSICIANS;
 window.REASONS = REASONS;
 window.SPECIALTIES = SPECIALTIES;
 window.slotsFor = slotsFor;
 window.physicianById = physicianById;
+window.DEMO_PATIENT = DEMO_PATIENT;

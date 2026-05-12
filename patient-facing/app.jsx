@@ -114,7 +114,7 @@ function App() {
   });
   const [submitting, setSubmitting] = React.useState(false);
   const [requestId, setRequestId] = React.useState(null);
-  const [bookings, setBookings] = React.useState([]);
+  const [bookings, setBookings] = React.useState(() => Store.list());
 
   // Apply accent color CSS variables
   React.useEffect(() => {
@@ -122,6 +122,9 @@ function App() {
     root.style.setProperty("--accent", ACCENT);
     root.style.setProperty("--accent-dark", darken(ACCENT, 0.08));
   }, []);
+
+  // Stay in sync with the Store across tabs and admin updates
+  React.useEffect(() => Store.subscribe(setBookings), []);
 
   const physician = draft.physicianId ? physicianById(draft.physicianId) : null;
 
@@ -154,14 +157,37 @@ function App() {
       const reasonTitle = (REASONS.find((r) => r.id === draft.reason) || {}).title || "Visit";
       const booking = {
         id,
+        createdAt: new Date().toISOString(),
+        status: "pending",
         physicianId: draft.physicianId,
+        // Top-level scheduling fields (kept for VisitsScreen compatibility)
         reason: reasonTitle,
         date: dateStr,
         dateISO: draft.dateISO,
         time: draft.time,
-        status: "pending",
+        patient: { ...DEMO_PATIENT },
+        appointment: {
+          dateISO: draft.dateISO,
+          date: dateStr,
+          time: draft.time,
+          visitType: draft.visitType,
+          location: p ? p.location : null,
+        },
+        intake: {
+          reason: draft.reason,
+          reasonTitle,
+          notes: draft.notes,
+          duration: draft.duration,
+          severity: draft.severity,
+          trend: draft.trend,
+          priorTreatment: draft.priorTreatment,
+          medications: draft.medications,
+          allergies: draft.allergies,
+          contact: draft.contact,
+        },
+        adminEvents: [],
       };
-      setBookings((prev) => [booking, ...prev]);
+      Store.add(booking);
       setRequestId(id);
       setSubmitting(false);
       go({ name: "confirmed" });
