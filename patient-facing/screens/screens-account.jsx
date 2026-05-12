@@ -151,8 +151,15 @@ function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "end" }}>
-        {status === "pending" && onView && (
-          <button className="btn btn-primary" onClick={onView}>View request</button>
+        {status === "pending" && (
+          <>
+            {onView && <button className="btn btn-primary" onClick={onView}>View request</button>}
+            <button className="btn btn-ghost"
+              style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}
+              onClick={() => onCancel && onCancel(visit)}>
+              Withdraw request
+            </button>
+          </>
         )}
         {status === "confirmed" && (
           <>
