@@ -55,6 +55,146 @@ body {
 button { font-family: inherit; }
 input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
 
+/* ── Sequential reveal animation ─────────────────────────────── */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+  animation: reveal-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { animation: none; opacity: 1; }
+}
+
+/* ── Home screen ─────────────────────────────────────────────── */
+.home-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 56px 48px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(1200px 320px at 100% -40%, color-mix(in oklab, var(--accent) 18%, white), transparent 60%),
+    radial-gradient(800px 280px at -10% 120%, color-mix(in oklab, var(--accent) 10%, white), transparent 60%),
+    linear-gradient(180deg, var(--surface), var(--surface));
+}
+.home-hero::before {
+  content: "";
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(14,23,38,0.06) 1px, transparent 0);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.5), transparent 70%);
+  pointer-events: none;
+  opacity: 0.7;
+}
+.home-hero-inner { position: relative; max-width: 640px; }
+.home-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 26px; padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 10%, white);
+  color: var(--accent-dark);
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.02em;
+  margin-bottom: 18px;
+}
+.home-eyebrow .pulse {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 60%, transparent);
+  animation: pulse 1.8s ease-out infinite;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 50%, transparent); }
+  70%  { box-shadow: 0 0 0 8px color-mix(in oklab, var(--accent) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 0%, transparent); }
+}
+.home-title {
+  font-size: 48px; font-weight: 600; margin: 0;
+  letter-spacing: -0.025em; line-height: 1.05;
+  color: var(--ink-0);
+}
+.home-title .accent { color: var(--accent-dark); }
+.home-sub {
+  font-size: 17px; color: var(--ink-2);
+  margin: 16px 0 28px; max-width: 540px; line-height: 1.55;
+}
+.home-section-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.08em;
+  margin: 36px 0 14px;
+}
+.home-step-card {
+  position: relative;
+  padding: 22px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.home-step-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--line-strong);
+}
+.home-step-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: color-mix(in oklab, var(--accent) 10%, white);
+  color: var(--accent-dark);
+  display: inline-flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+}
+.home-step-num {
+  position: absolute; top: 18px; right: 20px;
+  font-family: var(--font-mono);
+  font-size: 12px; color: var(--ink-3);
+}
+.home-action {
+  text-align: left; cursor: pointer;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex; align-items: center; gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.home-action:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-color: var(--accent);
+}
+.home-action .arrow {
+  margin-left: auto;
+  color: var(--ink-3);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.home-action:hover .arrow { transform: translateX(3px); color: var(--accent-dark); }
+.home-specialty {
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; font-weight: 500; color: var(--ink-0);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.home-specialty:hover {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 4%, white);
+  transform: translateY(-1px);
+}
+.home-specialty .ico {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: color-mix(in oklab, var(--accent) 10%, white);
+  color: var(--accent-dark);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
 /* ── Top app bar ─────────────────────────────────────────────── */
 .appbar {
   position: sticky; top: 0; z-index: 30;
