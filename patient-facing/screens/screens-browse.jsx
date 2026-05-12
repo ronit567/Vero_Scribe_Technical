@@ -1,5 +1,11 @@
 
 function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
+  const languages = React.useMemo(() => {
+    const set = new Set();
+    PHYSICIANS.forEach((p) => (p.languages || []).forEach((l) => set.add(l)));
+    return ["Any language", ...Array.from(set).sort()];
+  }, []);
+
   const filtered = React.useMemo(() => {
     return PHYSICIANS.filter((p) => {
       if (filters.q) {
@@ -11,7 +17,9 @@ function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
       if (filters.specialty && filters.specialty !== "All specialties") {
         if (p.specialty !== filters.specialty) return false;
       }
-      if (filters.acceptingOnly && !p.accepting) return false;
+      if (filters.language && filters.language !== "Any language") {
+        if (!(p.languages || []).includes(filters.language)) return false;
+      }
       return true;
     });
   }, [filters]);
@@ -44,23 +52,28 @@ function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
       {/* Quick chips */}
       <div className="filterchips">
         <button
-          className={"chip " + (filters.acceptingOnly ? "is-active" : "")}
-          onClick={() => setFilters({ ...filters, acceptingOnly: !filters.acceptingOnly })}>
-          {filters.acceptingOnly && <Icon name="check" size={13} />}
-          Accepting new patients
-        </button>
-        <button
           className={"chip " + (filters.thisWeek ? "is-active" : "")}
           onClick={() => setFilters({ ...filters, thisWeek: !filters.thisWeek })}>
           {filters.thisWeek && <Icon name="check" size={13} />}
           Available this week
         </button>
-        <button className="chip">
-          <Icon name="language" size={13} /> Language
-        </button>
-        <button className="chip">
-          <Icon name="user" size={13} /> Gender
-        </button>
+        <label className={"chip " + (filters.language && filters.language !== "Any language" ? "is-active" : "")}
+          style={{ paddingRight: 8, gap: 6, cursor: "pointer" }}>
+          <Icon name="language" size={13} />
+          <select
+            value={filters.language || "Any language"}
+            onChange={(e) => setFilters({ ...filters, language: e.target.value })}
+            style={{
+              appearance: "none", border: 0, background: "transparent",
+              font: "inherit", color: "inherit", cursor: "pointer",
+              padding: 0, paddingRight: 14,
+              backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%235A6678' d='M0 0h10L5 6z'/></svg>\")",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "right center",
+            }}>
+            {languages.map((l) => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </label>
         <button className="chip">
           <Icon name="filter" size={13} /> More filters
         </button>

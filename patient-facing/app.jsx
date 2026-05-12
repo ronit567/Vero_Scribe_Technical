@@ -94,7 +94,7 @@ function App() {
     specialty: "All specialties",
     visit: "any",
     insurance: "BlueCross PPO",
-    acceptingOnly: false,
+    language: "Any language",
     thisWeek: false,
   });
   const [draft, setDraft] = React.useState({
