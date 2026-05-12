@@ -3,6 +3,9 @@
 (function () {
   const KEY = "vero.bookings.v1";
 
+  // Reset bookings on every page load — demo mode.
+  localStorage.removeItem(KEY);
+
   function read() {
     try {
       return JSON.parse(localStorage.getItem(KEY) || "[]");
