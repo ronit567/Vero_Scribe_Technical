@@ -53,7 +53,6 @@ function AppBar({ go, currentRoute }) {
 }
 
 function App() {
-  const [layout, setLayout]       = React.useState("cards");
   const [route, setRoute]         = React.useState({ name: "browse" });
   const [filters, setFilters]     = React.useState(DEFAULT_FILTERS);
   const [draft, setDraft]         = React.useState(DEFAULT_DRAFT);
@@ -143,7 +142,6 @@ function App() {
       {route.name === "browse" && (
         <BrowseScreen
           filters={filters} setFilters={setFilters}
-          layout={layout} setLayout={setLayout}
           onSelect={onSelectPhysician}
         />
       )}

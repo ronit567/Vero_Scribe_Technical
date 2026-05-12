@@ -1,8 +1,3 @@
-/* vero — patient booking flow
-   Clinical & trustworthy: cool near-white, slate text, accent-driven blue.
-   Type: Geist (UI) + Geist Mono (numerics)
-*/
-
 :root {
   --accent: #1F6FEB;
   --accent-dark: #1858BD;
@@ -154,9 +149,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 
 /* ── Form controls ───────────────────────────────────────────── */
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field-label {
-  font-size: 13px; font-weight: 500; color: var(--ink-1);
-}
 .field-help { font-size: 12.5px; color: var(--ink-3); }
 
 .input, .select, .textarea {
@@ -296,23 +288,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   color: var(--ink-1); font-size: 14px;
 }
 .resultbar .count b { color: var(--ink-0); font-weight: 600; }
-.layout-switch {
-  display: inline-flex; padding: 3px;
-  background: var(--surface); border: 1px solid var(--line);
-  border-radius: 9px; gap: 0;
-}
-.layout-switch button {
-  appearance: none; border: 0; background: transparent;
-  width: 32px; height: 28px; border-radius: 6px;
-  color: var(--ink-2);
-  display: inline-flex; align-items: center; justify-content: center;
-  cursor: pointer;
-}
-.layout-switch button:hover { color: var(--ink-0); }
-.layout-switch button.is-active {
-  background: var(--surface-2); color: var(--ink-0);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
 
 /* ── Physician photo placeholder (striped) ───────────────────── */
 .photo {
@@ -357,7 +332,7 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   margin: 8px;
 }
 
-/* ── Physician list — CARD layout ────────────────────────────── */
+/* ── Physician cards list ────────────────────────────────────── */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -418,66 +393,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   font-family: var(--font-mono);
   color: var(--ink-0); font-weight: 500;
   margin-left: 2px;
-}
-
-/* ── Physician list — ROW layout ─────────────────────────────── */
-.rows-list { display: flex; flex-direction: column; gap: 0; }
-.doc-row {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-top: 0;
-  padding: 14px 16px;
-  display: grid;
-  grid-template-columns: 64px 1fr auto;
-  gap: 16px;
-  align-items: center;
-  cursor: pointer;
-  transition: background .12s;
-}
-.doc-row:first-child {
-  border-top: 1px solid var(--line);
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-}
-.doc-row:last-child {
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
-}
-.doc-row:hover { background: var(--surface-2); }
-.doc-row .photo { width: 64px; height: 64px; border-radius: 50%; }
-.doc-row .photo .ph-label { font-size: 8px; margin: 4px; padding: 2px 5px; }
-.doc-row-info { min-width: 0; }
-.doc-row-info .doc-name { font-size: 15px; }
-.doc-row-info .doc-spec { margin-top: 1px; font-size: 13px; }
-.doc-row-info .doc-meta-row { margin-top: 6px; gap: 4px 14px; }
-.doc-row-action { display: flex; flex-direction: column; align-items: end; gap: 6px; }
-
-/* ── Physician list — GRID layout ────────────────────────────── */
-.grid-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-.doc-tile {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: border-color .15s, box-shadow .15s;
-}
-.doc-tile:hover { border-color: var(--line-strong); box-shadow: var(--shadow); }
-.doc-tile .photo {
-  width: 100%; aspect-ratio: 4 / 3;
-  border-radius: 0;
-}
-.doc-tile-body { padding: 14px; }
-.doc-tile .doc-name { font-size: 15px; }
-.doc-tile .doc-spec { margin-top: 2px; font-size: 13px; }
-.doc-tile .doc-meta-row { margin-top: 8px; }
-.doc-tile .doc-foot {
-  margin-top: 12px;
-  display: flex; align-items: center; justify-content: space-between;
 }
 
 /* ── Detail screen ───────────────────────────────────────────── */
@@ -543,23 +458,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .booking h3 {
   font-size: 15px; font-weight: 600; margin: 0 0 12px;
 }
-.visit-type {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
-  padding: 4px; background: var(--surface-2); border-radius: 10px;
-  margin-bottom: 16px;
-}
-.visit-type button {
-  appearance: none; border: 0; background: transparent;
-  padding: 8px; border-radius: 7px;
-  font-size: 13px; font-weight: 500; color: var(--ink-2);
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-}
-.visit-type button.is-active {
-  background: var(--surface); color: var(--ink-0);
-  box-shadow: 0 1px 2px rgba(14,23,38,0.08);
-}
-
 /* Date strip — horizontal scrollable days */
 .datestrip-h {
   display: flex; align-items: center; justify-content: space-between;
@@ -842,7 +740,6 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
 .col { display: flex; flex-direction: column; }
 .gap-2 { gap: 8px; }
 .gap-3 { gap: 12px; }
-.gap-4 { gap: 16px; }
 .flex { display: flex; }
 .flex-1 { flex: 1; }
 
@@ -850,12 +747,10 @@ input, select, textarea { font-family: inherit; font-size: inherit; color: inher
   .detail-grid { grid-template-columns: 1fr; }
   .booking { position: static; }
   .cards-grid { grid-template-columns: 1fr; }
-  .grid-grid { grid-template-columns: repeat(2, 1fr); }
   .filterbar { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 640px) {
-  .grid-grid { grid-template-columns: 1fr; }
   .nav { display: none; }
   .page { padding: 24px 16px 80px; }
 }

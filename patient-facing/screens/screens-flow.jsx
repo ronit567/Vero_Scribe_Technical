@@ -240,16 +240,12 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
       </div>
 
       <div className="card">
-        <div className="sum-row" style={{ gridTemplateColumns: "160px 1fr auto" }}>
-          <div className="l">Provider</div>
-          <div className="v">
-            <div><b>{physician.name}</b></div>
-            <div className="muted" style={{ fontSize: 13 }}>
-              {physician.credentials} · {physician.specialty}
-            </div>
+        <SumRow label="Provider" onChange={() => onJumpTo("detail")}>
+          <div><b>{physician.name}</b></div>
+          <div className="muted" style={{ fontSize: 13 }}>
+            {physician.credentials} · {physician.specialty}
           </div>
-          <button className="edit" onClick={() => onJumpTo("detail")}>Change</button>
-        </div>
+        </SumRow>
 
         <SumRow label="When" onChange={() => onJumpTo("detail")}>
           <span className="mono"><b>{formatDayLong(fromISO(draft.dateISO))}</b> · {draft.time}</span>
@@ -377,21 +373,11 @@ function ConfirmationScreen({ physician, draft, requestId, onStartOver }) {
           <div className="card-pad" style={{ paddingBottom: 8 }}>
             <h3 className="section-h">Requested appointment</h3>
           </div>
-          <div className="sum-row" style={{ borderTop: "1px solid var(--line)" }}>
-            <div className="l">Provider</div>
-            <div className="v"><b>{physician.name}</b> · {physician.specialty}</div>
-            <div />
-          </div>
-          <div className="sum-row">
-            <div className="l">When</div>
-            <div className="v mono"><b>{formatDayLong(fromISO(draft.dateISO))}</b> · {draft.time}</div>
-            <div />
-          </div>
-          <div className="sum-row">
-            <div className="l">Where</div>
-            <div className="v">{physician.location}</div>
-            <div />
-          </div>
+          <SumRow label="Provider"><b>{physician.name}</b> · {physician.specialty}</SumRow>
+          <SumRow label="When">
+            <span className="mono"><b>{formatDayLong(fromISO(draft.dateISO))}</b> · {draft.time}</span>
+          </SumRow>
+          <SumRow label="Where">{physician.location}</SumRow>
         </div>
 
         <div className="card" style={{ marginTop: 16 }}>

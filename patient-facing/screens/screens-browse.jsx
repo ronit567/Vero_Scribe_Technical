@@ -1,5 +1,5 @@
 
-function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
+function BrowseScreen({ filters, setFilters, onSelect }) {
   const languages = React.useMemo(() => {
     const set = new Set();
     PHYSICIANS.forEach((p) => (p.languages || []).forEach((l) => set.add(l)));
@@ -79,41 +79,19 @@ function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
         </button>
       </div>
 
-      {/* Result bar with layout switcher */}
       <div className="resultbar">
         <div className="count">
           <b>{filtered.length}</b> {filtered.length === 1 ? "provider" : "providers"} match your filters
         </div>
-        <div className="row gap-3">
-          <select className="select" style={{ width: 180, height: 32, fontSize: 13 }}>
-            <option>Best match</option>
-            <option>Soonest available</option>
-            <option>Highest rated</option>
-            <option>Nearest to me</option>
-          </select>
-          <div className="layout-switch" role="tablist" aria-label="Result layout">
-            <button title="Card layout"
-              className={layout === "cards" ? "is-active" : ""}
-              onClick={() => setLayout("cards")}>
-              <Icon name="card" size={16} />
-            </button>
-            <button title="Row layout"
-              className={layout === "rows" ? "is-active" : ""}
-              onClick={() => setLayout("rows")}>
-              <Icon name="rows" size={16} />
-            </button>
-            <button title="Grid layout"
-              className={layout === "grid" ? "is-active" : ""}
-              onClick={() => setLayout("grid")}>
-              <Icon name="grid" size={16} />
-            </button>
-          </div>
-        </div>
+        <select className="select" style={{ width: 180, height: 32, fontSize: 13 }}>
+          <option>Best match</option>
+          <option>Soonest available</option>
+          <option>Highest rated</option>
+          <option>Nearest to me</option>
+        </select>
       </div>
 
-      {layout === "cards" && <PhysicianCards list={filtered} onSelect={onSelect} />}
-      {layout === "rows"  && <PhysicianRows  list={filtered} onSelect={onSelect} />}
-      {layout === "grid"  && <PhysicianGrid  list={filtered} onSelect={onSelect} />}
+      <PhysicianCards list={filtered} onSelect={onSelect} />
 
       {filtered.length === 0 && (
         <div className="card card-pad" style={{ textAlign: "center", color: "var(--ink-2)" }}>
@@ -164,59 +142,6 @@ function PhysicianCards({ list, onSelect }) {
               <button className="btn btn-secondary" onClick={(e) => { e.stopPropagation(); onSelect(p.id); }}>
                 View profile
               </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PhysicianRows({ list, onSelect }) {
-  return (
-    <div className="rows-list">
-      {list.map((p) => (
-        <div key={p.id} className="doc-row" onClick={() => onSelect(p.id)}>
-          <PhotoPlaceholder image={physicianAvatar(p)} />
-          <div className="doc-row-info">
-            <div className="row gap-2">
-              <div className="doc-name">{p.name}</div>
-              <span className="muted" style={{ fontSize: 13 }}>{p.credentials}</span>
-            </div>
-            <div className="doc-spec">{p.specialty} · {p.subspecialty}</div>
-            <div className="doc-meta-row">
-              <span className="it"><Icon name="pin" size={12} /> {p.location.split(" — ")[0]}</span>
-              <Rating rating={p.rating} reviews={p.reviews} />
-
-            </div>
-          </div>
-          <div className="doc-row-action">
-            <div className="next-avail">Next available <b>{nextAvailText(p.nextAvail)}</b></div>
-            <button className="btn btn-secondary" onClick={(e) => { e.stopPropagation(); onSelect(p.id); }}>
-              View profile <Icon name="chev_r" size={14} />
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PhysicianGrid({ list, onSelect }) {
-  return (
-    <div className="grid-grid">
-      {list.map((p) => (
-        <div key={p.id} className="doc-tile" onClick={() => onSelect(p.id)}>
-          <PhotoPlaceholder image={physicianAvatar(p)} />
-          <div className="doc-tile-body">
-            <div className="doc-name">{p.name}</div>
-            <div className="doc-spec">{p.specialty}</div>
-            <div className="doc-meta-row">
-              <Rating rating={p.rating} reviews={p.reviews} />
-            </div>
-            <div className="doc-foot">
-              <div className="next-avail">Next <b>{nextAvailText(p.nextAvail)}</b></div>
-              {p.accepting && <span className="tag tag-pos"><span className="dot" /> New patients</span>}
             </div>
           </div>
         </div>
