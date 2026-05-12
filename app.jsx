@@ -114,6 +114,7 @@ function App() {
   });
   const [submitting, setSubmitting] = React.useState(false);
   const [requestId, setRequestId] = React.useState(null);
+  const [bookings, setBookings] = React.useState([]);
 
   // Apply accent color CSS variables
   React.useEffect(() => {
@@ -147,6 +148,20 @@ function App() {
     setSubmitting(true);
     setTimeout(() => {
       const id = "VR-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+      const p = physicianById(draft.physicianId);
+      const dateStr = new Date(draft.dateISO + "T00:00:00")
+        .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      const reasonTitle = (REASONS.find((r) => r.id === draft.reason) || {}).title || "Visit";
+      const booking = {
+        id,
+        physicianId: draft.physicianId,
+        reason: reasonTitle,
+        date: dateStr,
+        dateISO: draft.dateISO,
+        time: draft.time,
+        status: "pending",
+      };
+      setBookings((prev) => [booking, ...prev]);
       setRequestId(id);
       setSubmitting(false);
       go({ name: "confirmed" });
@@ -171,10 +186,10 @@ function App() {
 
       {route.name === "visits" && (
         <VisitsScreen
+          bookings={bookings}
           requestId={requestId}
-          draft={draft}
           onBookNew={() => go({ name: "browse" })}
-          onOpenConfirmation={() => go({ name: "confirmed" })}
+          onOpenConfirmation={(id) => { setRequestId(id); go({ name: "confirmed" }); }}
         />
       )}
 

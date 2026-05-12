@@ -47,21 +47,8 @@ const SCHEDULED_VISITS = [];
 //  VISITS
 // ════════════════════════════════════════════════════════════════
 
-function VisitsScreen({ requestId, draft, onBookNew, onOpenConfirmation }) {
-  // The just-submitted request (if any) becomes a "pending" upcoming visit
-  const pendingRequest = requestId && draft.physicianId ? {
-    id: requestId,
-    physicianId: draft.physicianId,
-    reason: (REASONS.find((r) => r.id === draft.reason) || {}).title || "Visit",
-    date: draft.dateISO
-      ? new Date(draft.dateISO + "T00:00:00").toLocaleDateString(undefined,
-          { month: "short", day: "numeric", year: "numeric" })
-      : "",
-    time: draft.time,
-    status: "pending",
-  } : null;
-
-  const upcoming = pendingRequest ? [pendingRequest, ...SCHEDULED_VISITS] : SCHEDULED_VISITS;
+function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation }) {
+  const upcoming = [...bookings, ...SCHEDULED_VISITS];
 
   return (
     <div className="page">
@@ -89,7 +76,7 @@ function VisitsScreen({ requestId, draft, onBookNew, onOpenConfirmation }) {
           {upcoming.map((v) => (
             <VisitCardUpcoming key={v.id}
               visit={v}
-              onView={v.id === requestId ? onOpenConfirmation : null} />
+              onView={v.id === requestId ? () => onOpenConfirmation(v.id) : null} />
           ))}
         </div>
       )}

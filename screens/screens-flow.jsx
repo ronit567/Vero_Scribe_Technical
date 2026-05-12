@@ -29,70 +29,56 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         </div>
       </div>
 
-      {/* Appointment context strip */}
-      <div className="card" style={{
-        padding: "12px 16px", marginBottom: 16,
-        display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
-        background: "var(--surface-2)",
+      {/* Appointment context — small inline pill */}
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 10,
+        padding: "8px 12px", marginBottom: 18,
+        background: "var(--surface)", border: "1px solid var(--line)",
+        borderRadius: 999, fontSize: 13,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5 }}>
-          <Icon name="user" size={14} />
-          <b>{physician.name}</b>
-          <span className="muted">· {physician.specialty}</span>
-        </div>
-        <div style={{ width: 1, height: 16, background: "var(--line)" }} />
-        <div className="mono" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: "var(--ink-1)" }}>
-          <Icon name="calendar" size={13} /> {apptDate}
-          <span style={{ color: "var(--ink-3)" }}>·</span>
-          <Icon name="clock" size={13} /> {draft.time}
-        </div>
+        <b style={{ color: "var(--ink-0)" }}>{physician.name}</b>
+        <span style={{ color: "var(--ink-4)" }}>•</span>
+        <span className="mono" style={{ color: "var(--ink-1)" }}>{apptDate}</span>
+        <span style={{ color: "var(--ink-4)" }}>•</span>
+        <span className="mono" style={{ color: "var(--ink-1)" }}>{draft.time}</span>
       </div>
 
-      <FormSection
-        step={1}
-        title="Reason for visit"
-        hint="Pick the option that best describes why you're coming in.">
-        <div className="radio-cards">
-          {REASONS.map((r) => (
-            <button key={r.id}
-              type="button"
-              className={"radio-card " + (draft.reason === r.id ? "is-active" : "")}
-              onClick={() => setDraft({ ...draft, reason: r.id })}>
-              <span className="rc-radio" />
-              <span className="rc-title">{r.title}</span>
-              <span className="rc-desc">{r.desc}</span>
-            </button>
-          ))}
-        </div>
+      <div className="card">
+        <FormBlock label="Reason for visit" required>
+          <div className="radio-cards">
+            {REASONS.map((r) => (
+              <button key={r.id}
+                type="button"
+                className={"radio-card " + (draft.reason === r.id ? "is-active" : "")}
+                onClick={() => setDraft({ ...draft, reason: r.id })}>
+                <span className="rc-radio" />
+                <span className="rc-title">{r.title}</span>
+                <span className="rc-desc">{r.desc}</span>
+              </button>
+            ))}
+          </div>
+        </FormBlock>
 
-        <div style={{ marginTop: 20 }} className="field">
-          <label className="field-label">
-            Anything we should know? <span className="muted" style={{ fontWeight: 400 }}>Optional</span>
-          </label>
+        <FormBlock label="Anything we should know?" optional>
           <textarea className="textarea"
             placeholder="e.g. Persistent cough for the past 10 days, worse at night. No fever."
             value={draft.notes || ""}
             onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
             maxLength={500} />
-          <div className="field-help" style={{ textAlign: "right" }}>
+          <div className="field-help" style={{ textAlign: "right", marginTop: 4 }}>
             {(draft.notes || "").length} / 500
           </div>
-        </div>
-      </FormSection>
+        </FormBlock>
 
-      <FormSection
-        step={2}
-        title="Clinical context"
-        hint="Helps your provider triage and prepare. All required.">
-        <FormField label="How long have you had this concern?">
+        <FormBlock label="How long have you had this?">
           <ChipGroup
             options={["< 24 hours", "1–3 days", "4–7 days", "1–4 weeks", "1–3 months", "> 3 months"]}
             value={draft.duration}
             onChange={(v) => setDraft({ ...draft, duration: v })}
           />
-        </FormField>
+        </FormBlock>
 
-        <FormField label="How severe is it right now?">
+        <FormBlock label="How severe is it right now?">
           <ChipGroup
             options={[
               { id: "mild", label: "Mild", desc: "Noticeable, not limiting" },
@@ -102,9 +88,9 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
             value={draft.severity}
             onChange={(v) => setDraft({ ...draft, severity: v })}
           />
-        </FormField>
+        </FormBlock>
 
-        <FormField label="Is it changing?">
+        <FormBlock label="Is it changing?">
           <ChipGroup
             options={[
               { id: "improving", label: "Improving" },
@@ -114,41 +100,48 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
             value={draft.trend}
             onChange={(v) => setDraft({ ...draft, trend: v })}
           />
-        </FormField>
+        </FormBlock>
 
-        <FormField label="What have you tried so far?" optional>
+        <FormBlock label="What have you tried so far?" optional>
           <textarea className="textarea"
             placeholder="e.g. OTC ibuprofen 400 mg twice daily, rest. Some short-term relief."
             value={draft.priorTreatment || ""}
             onChange={(e) => setDraft({ ...draft, priorTreatment: e.target.value })}
             maxLength={300} />
-        </FormField>
-      </FormSection>
+        </FormBlock>
 
-      <FormSection
-        step={3}
-        title="Medical background"
-        hint="We'll save this to your profile so you don't have to enter it again.">
-        <NoneTextarea
-          label="Current medications"
-          noneValue="None"
-          noneLabel="I don't take any"
-          placeholder="List medication, dose, and frequency. e.g. Lisinopril 10 mg daily; Atorvastatin 20 mg nightly."
-          value={draft.medications}
-          onChange={(v) => setDraft({ ...draft, medications: v })}
-          maxLength={500}
-        />
+        <FormBlock label="Current medications"
+          trailing={
+            <ToggleNone
+              active={draft.medications === "None"}
+              label="I don't take any"
+              onClick={() => setDraft({ ...draft, medications: draft.medications === "None" ? "" : "None" })}
+            />
+          }>
+          <textarea className="textarea"
+            placeholder="List medication, dose, and frequency. e.g. Lisinopril 10 mg daily; Atorvastatin 20 mg nightly."
+            value={draft.medications && draft.medications !== "None" ? draft.medications : ""}
+            disabled={draft.medications === "None"}
+            onChange={(e) => setDraft({ ...draft, medications: e.target.value })}
+            maxLength={500} />
+        </FormBlock>
 
-        <NoneTextarea
-          label="Allergies"
-          noneValue="NKDA"
-          noneLabel="No known allergies"
-          placeholder="Include drug, food, or environmental allergies and reaction type. e.g. Penicillin — hives."
-          value={draft.allergies}
-          onChange={(v) => setDraft({ ...draft, allergies: v })}
-          maxLength={300}
-        />
-      </FormSection>
+        <FormBlock label="Allergies" last
+          trailing={
+            <ToggleNone
+              active={draft.allergies === "NKDA"}
+              label="No known allergies"
+              onClick={() => setDraft({ ...draft, allergies: draft.allergies === "NKDA" ? "" : "NKDA" })}
+            />
+          }>
+          <textarea className="textarea"
+            placeholder="Include drug, food, or environmental allergies and reaction type. e.g. Penicillin — hives."
+            value={draft.allergies && draft.allergies !== "NKDA" ? draft.allergies : ""}
+            disabled={draft.allergies === "NKDA"}
+            onChange={(e) => setDraft({ ...draft, allergies: e.target.value })}
+            maxLength={300} />
+        </FormBlock>
+      </div>
 
       <div className="footbar">
         <div className="summary-text">
@@ -167,35 +160,27 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
   );
 }
 
-function FormSection({ step, title, hint, children }) {
+function FormBlock({ label, optional, required, trailing, last, children }) {
   return (
-    <div className="card card-pad" style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: hint ? 4 : 14 }}>
-        <span style={{
-          width: 22, height: 22, borderRadius: "50%",
-          background: "var(--accent-tint)", color: "var(--accent-dark)",
-          fontSize: 12, fontWeight: 600,
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          flexShrink: 0,
-        }}>{step}</span>
-        <h3 className="section-h" style={{ margin: 0 }}>{title}</h3>
+    <div style={{
+      padding: "20px 24px",
+      borderBottom: last ? "0" : "1px solid var(--line)",
+    }}>
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        gap: 12, marginBottom: 10,
+      }}>
+        <label style={{
+          fontSize: 13, fontWeight: 600, color: "var(--ink-1)",
+          letterSpacing: "0.01em", margin: 0,
+        }}>
+          {label}
+          {optional && <span className="muted" style={{ fontWeight: 400, marginLeft: 8, fontSize: 12 }}>Optional</span>}
+          {required && <span style={{ color: "var(--accent-dark)", fontWeight: 500, marginLeft: 6 }}>*</span>}
+        </label>
+        {trailing}
       </div>
-      {hint && (
-        <p className="muted" style={{ margin: "0 0 16px 32px", fontSize: 13 }}>{hint}</p>
-      )}
       {children}
-    </div>
-  );
-}
-
-function FormField({ label, optional, children }) {
-  return (
-    <div className="field" style={{ marginBottom: 18 }}>
-      <label className="field-label">
-        {label}
-        {optional && <span className="muted" style={{ fontWeight: 400, marginLeft: 6 }}>Optional</span>}
-      </label>
-      <div style={{ marginTop: 6 }}>{children}</div>
     </div>
   );
 }
@@ -217,27 +202,23 @@ function ChipGroup({ options, value, onChange }) {
   );
 }
 
-function NoneTextarea({ label, noneValue, noneLabel, placeholder, value, onChange, maxLength }) {
-  const isNone = value === noneValue;
+function ToggleNone({ active, label, onClick }) {
   return (
-    <div className="field" style={{ marginBottom: 18 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <label className="field-label" style={{ margin: 0 }}>{label}</label>
-        <button
-          type="button"
-          className={"chip " + (isNone ? "is-active" : "")}
-          style={{ height: 26, fontSize: 12.5 }}
-          onClick={() => onChange(isNone ? "" : noneValue)}>
-          {isNone ? <><Icon name="check" size={12} /> {noneLabel}</> : noneLabel}
-        </button>
-      </div>
-      <textarea className="textarea"
-        placeholder={placeholder}
-        value={isNone ? "" : (value || "")}
-        disabled={isNone}
-        onChange={(e) => onChange(e.target.value)}
-        maxLength={maxLength} />
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        height: 26, padding: "0 10px",
+        border: "1px solid " + (active ? "var(--accent)" : "var(--line)"),
+        background: active ? "var(--accent-tint)" : "transparent",
+        color: active ? "var(--accent-dark)" : "var(--ink-2)",
+        borderRadius: 999, fontSize: 12.5, fontWeight: 500,
+        display: "inline-flex", alignItems: "center", gap: 6,
+        cursor: "pointer",
+      }}>
+      {active && <Icon name="check" size={12} />}
+      {label}
+    </button>
   );
 }
 
