@@ -65,6 +65,11 @@ function ActionFooter({ booking, intake, onConfirm, onDecline }) {
       </button>
     </>
   );
+  if (booking.status === "cancelled") return (
+    <span className="admin-history">
+      <b style={{ color: "var(--ink-1)" }}>Cancelled by patient.</b> No further action needed.
+    </span>
+  );
   return (
     <>
       <span className="admin-history">
@@ -162,15 +167,18 @@ function AppointmentDetail({ booking, onClose, onConfirm, onDecline }) {
               <span className="lbl">Request submitted by patient</span>
               <span className="time">{booking.createdAt ? relativeTime(booking.createdAt) : ""}</span>
             </div>
-            {events.map((e, i) => (
-              <div key={i} className={"ev " + (e.action === "confirmed" ? "ev-pos" : "ev-neg")}>
-                <span className="ico" />
-                <span className="lbl">
-                  {e.action === "confirmed" ? "Confirmed by admin" : "Declined by admin"}
-                </span>
-                <span className="time">{relativeTime(e.at)}</span>
-              </div>
-            ))}
+            {events.map((e, i) => {
+              const label = e.action === "confirmed" ? "Confirmed by admin"
+                          : e.action === "cancelled" ? "Cancelled by patient"
+                          : "Declined by admin";
+              return (
+                <div key={i} className={"ev " + (e.action === "confirmed" ? "ev-pos" : "ev-neg")}>
+                  <span className="ico" />
+                  <span className="lbl">{label}</span>
+                  <span className="time">{relativeTime(e.at)}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

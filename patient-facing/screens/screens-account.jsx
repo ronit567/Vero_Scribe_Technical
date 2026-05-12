@@ -18,6 +18,21 @@ const PAST_VISITS = [
 // ─── Visits ─────────────────────────────────────────────────────
 
 function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation }) {
+  const onCancel = (visit) => {
+    const p = physicianById(visit.physicianId);
+    const ok = window.confirm(
+      `Cancel your ${visit.time} appointment with ${p.name} on ${visit.date}?`
+    );
+    if (!ok) return;
+    Store.update(visit.id, {
+      status: "cancelled",
+      adminEvents: [
+        ...(visit.adminEvents || []),
+        { at: new Date().toISOString(), action: "cancelled", by: "patient" },
+      ],
+    });
+  };
+
   return (
     <div className="page">
       <div className="page-header">
@@ -44,7 +59,9 @@ function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation 
           {bookings.map((v) => (
             <VisitCardUpcoming key={v.id}
               visit={v}
-              onView={v.id === requestId ? () => onOpenConfirmation(v.id) : null} />
+              onView={v.id === requestId ? () => onOpenConfirmation(v.id) : null}
+              onCancel={onCancel}
+              onBookAgain={onBookNew} />
           ))}
         </div>
       )}
@@ -98,24 +115,24 @@ function DateBlock({ dateStr, accent }) {
   );
 }
 
+const MUTED_TAG = { background: "var(--surface-2)", color: "var(--ink-2)" };
+
 function StatusTag({ status }) {
   if (status === "confirmed") return <span className="tag tag-pos"><span className="dot" /> Confirmed</span>;
-  if (status === "declined") return (
-    <span className="tag" style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}>
-      Declined by office
-    </span>
-  );
+  if (status === "declined")  return <span className="tag" style={MUTED_TAG}>Declined by office</span>;
+  if (status === "cancelled") return <span className="tag" style={MUTED_TAG}>Cancelled</span>;
   return <span className="tag tag-warn"><span className="dot" /> Awaiting confirmation</span>;
 }
 
-function VisitCardUpcoming({ visit, onView }) {
+function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
   const p = physicianById(visit.physicianId);
   const status = visit.status || "pending";
+  const isInactive = status === "declined" || status === "cancelled";
   return (
     <div className="card" style={{
       padding: 16, display: "grid", gridTemplateColumns: "64px 1fr auto",
       gap: 16, alignItems: "center",
-      opacity: status === "declined" ? 0.7 : 1,
+      opacity: isInactive ? 0.7 : 1,
     }}>
       <DateBlock dateStr={visit.date} accent={status === "confirmed"} />
       <div style={{ minWidth: 0 }}>
@@ -141,12 +158,17 @@ function VisitCardUpcoming({ visit, onView }) {
           <>
             <button className="btn btn-secondary">Reschedule</button>
             <button className="btn btn-ghost"
-              style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}>
+              style={{ height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 }}
+              onClick={() => onCancel && onCancel(visit)}>
               Cancel
             </button>
           </>
         )}
-        {status === "declined" && <button className="btn btn-secondary">Book another</button>}
+        {isInactive && (
+          <button className="btn btn-secondary" onClick={() => onBookAgain && onBookAgain()}>
+            Book another
+          </button>
+        )}
       </div>
     </div>
   );

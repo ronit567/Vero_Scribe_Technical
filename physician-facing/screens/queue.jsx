@@ -3,6 +3,7 @@
 function StatusPill({ status }) {
   if (status === "confirmed") return <span className="tag tag-pos"><span className="dot" /> Confirmed</span>;
   if (status === "declined")  return <span className="tag" style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}>Declined</span>;
+  if (status === "cancelled") return <span className="tag" style={{ background: "var(--surface-2)", color: "var(--ink-2)" }}>Cancelled by patient</span>;
   return <span className="tag tag-warn"><span className="dot" /> Pending</span>;
 }
 

@@ -73,7 +73,7 @@ function AdminApp() {
   React.useEffect(() => Store.subscribe(setBookings), []);
 
   const counts = React.useMemo(() => {
-    const c = { all: bookings.length, pending: 0, confirmed: 0, declined: 0, today: 0, week: 0, urgent: 0 };
+    const c = { all: bookings.length, pending: 0, confirmed: 0, declined: 0, cancelled: 0, today: 0, week: 0, urgent: 0 };
     for (const b of bookings) {
       c[b.status] = (c[b.status] || 0) + 1;
       const iso = bookingDateISO(b);
@@ -160,6 +160,7 @@ function AdminApp() {
             <NavItem id="pending"   label="Pending"      count={counts.pending} />
             <NavItem id="confirmed" label="Confirmed"    count={counts.confirmed} />
             <NavItem id="declined"  label="Declined"     count={counts.declined} />
+            <NavItem id="cancelled" label="Cancelled"    count={counts.cancelled} />
           </div>
 
           <div className="admin-side-section">
