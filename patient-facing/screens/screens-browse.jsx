@@ -127,8 +127,12 @@ function BrowseScreen({ filters, setFilters, layout, setLayout, onSelect }) {
 function nextAvailText(days) {
   if (days === 0) return "Today";
   if (days === 1) return "Tomorrow";
-  if (days < 7) return `In ${days} days`;
   return `In ${days} days`;
+}
+
+function hasSlots(physicianId, iso) {
+  const s = slotsFor(physicianId, iso);
+  return s.morning.length + s.afternoon.length + s.evening.length > 0;
 }
 
 function PhysicianCards({ list, onSelect }) {
@@ -344,20 +348,13 @@ function DetailScreen({ physician, draft, setDraft, onBack, onContinue }) {
           <div className="datestrip">
             {days.map((d) => {
               const iso = toISO(d);
-              const dow = d.getDay();
-              const isWeekend = dow === 0 || dow === 6;
-              const has = (() => {
-                const s = slotsFor(physician.id, iso);
-                return s.morning.length + s.afternoon.length + s.evening.length > 0;
-              })();
-              const dayLabel = d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 3);
-              const active = selectedDate === iso;
+              const has = hasSlots(physician.id, iso);
               return (
                 <button key={iso}
-                  className={"dpill " + (active ? "is-active" : "")}
+                  className={"dpill " + (selectedDate === iso ? "is-active" : "")}
                   disabled={!has}
                   onClick={() => selectDate(iso)}>
-                  <span className="dow">{dayLabel}</span>
+                  <span className="dow">{d.toLocaleDateString(undefined, { weekday: "short" }).slice(0, 3)}</span>
                   <span className="dnum">{d.getDate()}</span>
                   {has && <span className="dot" />}
                 </button>

@@ -1,48 +1,23 @@
 // vero — main App: routing + state + AppBar
 
-const ACCENT = "#1F6FEB";
+const DEFAULT_FILTERS = {
+  q: "", specialty: "All specialties", visit: "any",
+  insurance: "BlueCross PPO", language: "Any language", thisWeek: false,
+};
 
-// Derived: a darker variant for hover from accent
-function hexToHsl(hex) {
-  const h = hex.replace("#", "");
-  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h;
-  const r = parseInt(x.slice(0, 2), 16) / 255;
-  const g = parseInt(x.slice(2, 4), 16) / 255;
-  const b = parseInt(x.slice(4, 6), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let hh = 0, s = 0; const l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: hh = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: hh = (b - r) / d + 2; break;
-      case b: hh = (r - g) / d + 4; break;
-    }
-    hh *= 60;
-  }
-  return [hh, s, l];
-}
-function darken(hex, amount = 0.08) {
-  const [h, s, l] = hexToHsl(hex);
-  const nl = Math.max(0, l - amount);
-  // back to hex
-  const c = (1 - Math.abs(2 * nl - 1)) * s;
-  const hp = h / 60;
-  const xv = c * (1 - Math.abs((hp % 2) - 1));
-  let r = 0, g = 0, b = 0;
-  if      (0 <= hp && hp < 1) { r = c; g = xv; }
-  else if (1 <= hp && hp < 2) { r = xv; g = c; }
-  else if (2 <= hp && hp < 3) { g = c; b = xv; }
-  else if (3 <= hp && hp < 4) { g = xv; b = c; }
-  else if (4 <= hp && hp < 5) { r = xv; b = c; }
-  else                         { r = c;  b = xv; }
-  const m = nl - c / 2;
-  const to = (v) => Math.round((v + m) * 255).toString(16).padStart(2, "0");
-  return "#" + to(r) + to(g) + to(b);
-}
+const DEFAULT_DRAFT = {
+  physicianId: null, visitType: null, dateISO: null, time: null,
+  reason: null, notes: "",
+  duration: null, severity: null, trend: null, priorTreatment: "",
+  medications: "", allergies: "", contact: "Text",
+};
 
-// ────────────────────────────────────────────────────────────────
+const NAV = [
+  { id: "browse",  label: "Find care", aliases: ["detail"] },
+  { id: "visits",  label: "Visits" },
+  { id: "profile", label: "Profile" },
+];
+
 function AppBar({ go, currentRoute }) {
   return (
     <div className="appbar">
@@ -52,21 +27,13 @@ function AppBar({ go, currentRoute }) {
           vero
         </div>
         <div className="nav">
-          <button
-            className={currentRoute === "browse" || currentRoute === "detail" ? "is-active" : ""}
-            onClick={() => go({ name: "browse" })}>
-            Find care
-          </button>
-          <button
-            className={currentRoute === "visits" ? "is-active" : ""}
-            onClick={() => go({ name: "visits" })}>
-            Visits
-          </button>
-          <button
-            className={currentRoute === "profile" ? "is-active" : ""}
-            onClick={() => go({ name: "profile" })}>
-            Profile
-          </button>
+          {NAV.map(({ id, label, aliases = [] }) => (
+            <button key={id}
+              className={[id, ...aliases].includes(currentRoute) ? "is-active" : ""}
+              onClick={() => go({ name: id })}>
+              {label}
+            </button>
+          ))}
         </div>
         <div className="spacer" />
         <div className="appbar-right">
@@ -85,45 +52,15 @@ function AppBar({ go, currentRoute }) {
   );
 }
 
-// ────────────────────────────────────────────────────────────────
 function App() {
-  const [layout, setLayout] = React.useState("cards");
-  const [route, setRoute] = React.useState({ name: "browse" });
-  const [filters, setFilters] = React.useState({
-    q: "",
-    specialty: "All specialties",
-    visit: "any",
-    insurance: "BlueCross PPO",
-    language: "Any language",
-    thisWeek: false,
-  });
-  const [draft, setDraft] = React.useState({
-    physicianId: null,
-    visitType: null,
-    dateISO: null,
-    time: null,
-    reason: null,
-    notes: "",
-    duration: null,
-    severity: null,
-    trend: null,
-    priorTreatment: "",
-    medications: "",
-    allergies: "",
-    contact: "Text",
-  });
+  const [layout, setLayout]       = React.useState("cards");
+  const [route, setRoute]         = React.useState({ name: "browse" });
+  const [filters, setFilters]     = React.useState(DEFAULT_FILTERS);
+  const [draft, setDraft]         = React.useState(DEFAULT_DRAFT);
   const [submitting, setSubmitting] = React.useState(false);
   const [requestId, setRequestId] = React.useState(null);
-  const [bookings, setBookings] = React.useState(() => Store.list());
+  const [bookings, setBookings]   = React.useState(() => Store.list());
 
-  // Apply accent color CSS variables
-  React.useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty("--accent", ACCENT);
-    root.style.setProperty("--accent-dark", darken(ACCENT, 0.08));
-  }, []);
-
-  // Stay in sync with the Store across tabs and admin updates
   React.useEffect(() => Store.subscribe(setBookings), []);
 
   const physician = draft.physicianId ? physicianById(draft.physicianId) : null;
@@ -135,12 +72,10 @@ function App() {
 
   const onSelectPhysician = (id) => {
     const p = physicianById(id);
-    const defaultDate = toISO(addDays(new Date(), p.nextAvail));
     setDraft({
       ...draft,
       physicianId: id,
-      // reset slot selection if changing physician
-      dateISO: defaultDate,
+      dateISO: toISO(addDays(new Date(), p.nextAvail)),
       time: null,
       visitType: p.visitTypes.includes("in-person") ? "in-person" : "virtual",
     });
@@ -152,42 +87,32 @@ function App() {
     setTimeout(() => {
       const id = "VR-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       const p = physicianById(draft.physicianId);
-      const dateStr = new Date(draft.dateISO + "T00:00:00")
+      const date = new Date(draft.dateISO + "T00:00:00")
         .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
       const reasonTitle = (REASONS.find((r) => r.id === draft.reason) || {}).title || "Visit";
-      const booking = {
+      Store.add({
         id,
         createdAt: new Date().toISOString(),
         status: "pending",
         physicianId: draft.physicianId,
-        // Top-level scheduling fields (kept for VisitsScreen compatibility)
         reason: reasonTitle,
-        date: dateStr,
+        date,
         dateISO: draft.dateISO,
         time: draft.time,
         patient: { ...DEMO_PATIENT },
         appointment: {
-          dateISO: draft.dateISO,
-          date: dateStr,
-          time: draft.time,
-          visitType: draft.visitType,
-          location: p ? p.location : null,
+          dateISO: draft.dateISO, date, time: draft.time,
+          visitType: draft.visitType, location: p ? p.location : null,
         },
         intake: {
-          reason: draft.reason,
-          reasonTitle,
-          notes: draft.notes,
-          duration: draft.duration,
-          severity: draft.severity,
-          trend: draft.trend,
+          reason: draft.reason, reasonTitle, notes: draft.notes,
+          duration: draft.duration, severity: draft.severity, trend: draft.trend,
           priorTreatment: draft.priorTreatment,
-          medications: draft.medications,
-          allergies: draft.allergies,
+          medications: draft.medications, allergies: draft.allergies,
           contact: draft.contact,
         },
         adminEvents: [],
-      };
-      Store.add(booking);
+      });
       setRequestId(id);
       setSubmitting(false);
       go({ name: "confirmed" });
@@ -195,13 +120,7 @@ function App() {
   };
 
   const onStartOver = () => {
-    setDraft({
-      physicianId: null, visitType: null, dateISO: null, time: null,
-      reason: null, notes: "",
-      duration: null, severity: null, trend: null, priorTreatment: "",
-      medications: "", allergies: "",
-      contact: "Text",
-    });
+    setDraft(DEFAULT_DRAFT);
     setRequestId(null);
     go({ name: "browse" });
   };
@@ -223,19 +142,15 @@ function App() {
 
       {route.name === "browse" && (
         <BrowseScreen
-          filters={filters}
-          setFilters={setFilters}
-          layout={layout}
-          setLayout={setLayout}
+          filters={filters} setFilters={setFilters}
+          layout={layout} setLayout={setLayout}
           onSelect={onSelectPhysician}
         />
       )}
 
       {route.name === "detail" && physician && (
         <DetailScreen
-          physician={physician}
-          draft={draft}
-          setDraft={setDraft}
+          physician={physician} draft={draft} setDraft={setDraft}
           onBack={() => go({ name: "browse" })}
           onContinue={() => go({ name: "reason" })}
         />
@@ -243,9 +158,7 @@ function App() {
 
       {route.name === "reason" && physician && (
         <ReasonScreen
-          physician={physician}
-          draft={draft}
-          setDraft={setDraft}
+          physician={physician} draft={draft} setDraft={setDraft}
           onBack={() => go({ name: "detail" })}
           onContinue={() => go({ name: "review" })}
         />
@@ -253,9 +166,7 @@ function App() {
 
       {route.name === "review" && physician && (
         <ReviewScreen
-          physician={physician}
-          draft={draft}
-          submitting={submitting}
+          physician={physician} draft={draft} submitting={submitting}
           onBack={() => go({ name: "reason" })}
           onJumpTo={(n) => go({ name: n })}
           onSubmit={onSubmit}
@@ -264,13 +175,10 @@ function App() {
 
       {route.name === "confirmed" && physician && (
         <ConfirmationScreen
-          physician={physician}
-          draft={draft}
-          requestId={requestId}
-          onStartOver={onStartOver}
+          physician={physician} draft={draft}
+          requestId={requestId} onStartOver={onStartOver}
         />
       )}
-
     </>
   );
 }

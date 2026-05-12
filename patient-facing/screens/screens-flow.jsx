@@ -1,16 +1,44 @@
 // Screens: Visit details (reason) + Review + Confirmation
-// Globals: Icon, PhotoPlaceholder, Stepper, REASONS, formatDayLong
 
-// ════════════════════════════════════════════════════════════════
-//  REASON / VISIT DETAILS
-// ════════════════════════════════════════════════════════════════
+const FLOW_STEPS = ["Choose physician", "Pick a time", "Visit details", "Review & submit"];
+
+const SEVERITY_OPTS = [
+  { id: "mild",     label: "Mild",     desc: "Noticeable, not limiting" },
+  { id: "moderate", label: "Moderate", desc: "Interferes with daily activities" },
+  { id: "severe",   label: "Severe",   desc: "Hard to function" },
+];
+const TREND_OPTS = [
+  { id: "improving", label: "Improving" },
+  { id: "same",      label: "About the same" },
+  { id: "worsening", label: "Getting worse" },
+];
+const DURATION_OPTS = ["< 24 hours", "1–3 days", "4–7 days", "1–4 weeks", "1–3 months", "> 3 months"];
+
+function fromISO(iso) { return new Date(iso + "T00:00:00"); }
+function shortDate(iso) {
+  return fromISO(iso).toLocaleDateString(undefined,
+    { weekday: "short", month: "short", day: "numeric" });
+}
+
+function ApptPill({ physician, draft }) {
+  return (
+    <div style={{
+      display: "inline-flex", alignItems: "center", gap: 10,
+      padding: "8px 12px", marginBottom: 18,
+      background: "var(--surface)", border: "1px solid var(--line)",
+      borderRadius: 999, fontSize: 13,
+    }}>
+      <b style={{ color: "var(--ink-0)" }}>{physician.name}</b>
+      <span style={{ color: "var(--ink-4)" }}>•</span>
+      <span className="mono" style={{ color: "var(--ink-1)" }}>{shortDate(draft.dateISO)}</span>
+      <span style={{ color: "var(--ink-4)" }}>•</span>
+      <span className="mono" style={{ color: "var(--ink-1)" }}>{draft.time}</span>
+    </div>
+  );
+}
 
 function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
-  const canContinue = !!draft.reason;
-  const apptDate = draft.dateISO
-    ? new Date(draft.dateISO + "T00:00:00").toLocaleDateString(undefined,
-        { weekday: "short", month: "short", day: "numeric" })
-    : "";
+  const set = (patch) => setDraft({ ...draft, ...patch });
 
   return (
     <div className="page">
@@ -18,7 +46,7 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         <Icon name="arrow_l" size={14} /> Back
       </button>
 
-      <Stepper steps={["Choose physician", "Pick a time", "Visit details", "Review & submit"]} current={2} />
+      <Stepper steps={FLOW_STEPS} current={2} />
 
       <div className="page-header">
         <div>
@@ -29,28 +57,15 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         </div>
       </div>
 
-      {/* Appointment context — small inline pill */}
-      <div style={{
-        display: "inline-flex", alignItems: "center", gap: 10,
-        padding: "8px 12px", marginBottom: 18,
-        background: "var(--surface)", border: "1px solid var(--line)",
-        borderRadius: 999, fontSize: 13,
-      }}>
-        <b style={{ color: "var(--ink-0)" }}>{physician.name}</b>
-        <span style={{ color: "var(--ink-4)" }}>•</span>
-        <span className="mono" style={{ color: "var(--ink-1)" }}>{apptDate}</span>
-        <span style={{ color: "var(--ink-4)" }}>•</span>
-        <span className="mono" style={{ color: "var(--ink-1)" }}>{draft.time}</span>
-      </div>
+      <ApptPill physician={physician} draft={draft} />
 
       <div className="card">
         <FormBlock label="Reason for visit" required>
           <div className="radio-cards">
             {REASONS.map((r) => (
-              <button key={r.id}
-                type="button"
+              <button key={r.id} type="button"
                 className={"radio-card " + (draft.reason === r.id ? "is-active" : "")}
-                onClick={() => setDraft({ ...draft, reason: r.id })}>
+                onClick={() => set({ reason: r.id })}>
                 <span className="rc-radio" />
                 <span className="rc-title">{r.title}</span>
                 <span className="rc-desc">{r.desc}</span>
@@ -63,7 +78,7 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
           <textarea className="textarea"
             placeholder="e.g. Persistent cough for the past 10 days, worse at night. No fever."
             value={draft.notes || ""}
-            onChange={(e) => setDraft({ ...draft, notes: e.target.value })}
+            onChange={(e) => set({ notes: e.target.value })}
             maxLength={500} />
           <div className="field-help" style={{ textAlign: "right", marginTop: 4 }}>
             {(draft.notes || "").length} / 500
@@ -71,42 +86,22 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         </FormBlock>
 
         <FormBlock label="How long have you had this?">
-          <ChipGroup
-            options={["< 24 hours", "1–3 days", "4–7 days", "1–4 weeks", "1–3 months", "> 3 months"]}
-            value={draft.duration}
-            onChange={(v) => setDraft({ ...draft, duration: v })}
-          />
+          <ChipGroup options={DURATION_OPTS} value={draft.duration} onChange={(v) => set({ duration: v })} />
         </FormBlock>
 
         <FormBlock label="How severe is it right now?">
-          <ChipGroup
-            options={[
-              { id: "mild", label: "Mild", desc: "Noticeable, not limiting" },
-              { id: "moderate", label: "Moderate", desc: "Interferes with daily activities" },
-              { id: "severe", label: "Severe", desc: "Hard to function" },
-            ]}
-            value={draft.severity}
-            onChange={(v) => setDraft({ ...draft, severity: v })}
-          />
+          <ChipGroup options={SEVERITY_OPTS} value={draft.severity} onChange={(v) => set({ severity: v })} />
         </FormBlock>
 
         <FormBlock label="Is it changing?">
-          <ChipGroup
-            options={[
-              { id: "improving", label: "Improving" },
-              { id: "same", label: "About the same" },
-              { id: "worsening", label: "Getting worse" },
-            ]}
-            value={draft.trend}
-            onChange={(v) => setDraft({ ...draft, trend: v })}
-          />
+          <ChipGroup options={TREND_OPTS} value={draft.trend} onChange={(v) => set({ trend: v })} />
         </FormBlock>
 
         <FormBlock label="What have you tried so far?" optional>
           <textarea className="textarea"
             placeholder="e.g. OTC ibuprofen 400 mg twice daily, rest. Some short-term relief."
             value={draft.priorTreatment || ""}
-            onChange={(e) => setDraft({ ...draft, priorTreatment: e.target.value })}
+            onChange={(e) => set({ priorTreatment: e.target.value })}
             maxLength={300} />
         </FormBlock>
 
@@ -115,14 +110,14 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
             <ToggleNone
               active={draft.medications === "None"}
               label="I don't take any"
-              onClick={() => setDraft({ ...draft, medications: draft.medications === "None" ? "" : "None" })}
+              onClick={() => set({ medications: draft.medications === "None" ? "" : "None" })}
             />
           }>
           <textarea className="textarea"
             placeholder="List medication, dose, and frequency. e.g. Lisinopril 10 mg daily; Atorvastatin 20 mg nightly."
             value={draft.medications && draft.medications !== "None" ? draft.medications : ""}
             disabled={draft.medications === "None"}
-            onChange={(e) => setDraft({ ...draft, medications: e.target.value })}
+            onChange={(e) => set({ medications: e.target.value })}
             maxLength={500} />
         </FormBlock>
 
@@ -131,27 +126,25 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
             <ToggleNone
               active={draft.allergies === "NKDA"}
               label="No known allergies"
-              onClick={() => setDraft({ ...draft, allergies: draft.allergies === "NKDA" ? "" : "NKDA" })}
+              onClick={() => set({ allergies: draft.allergies === "NKDA" ? "" : "NKDA" })}
             />
           }>
           <textarea className="textarea"
             placeholder="Include drug, food, or environmental allergies and reaction type. e.g. Penicillin — hives."
             value={draft.allergies && draft.allergies !== "NKDA" ? draft.allergies : ""}
             disabled={draft.allergies === "NKDA"}
-            onChange={(e) => setDraft({ ...draft, allergies: e.target.value })}
+            onChange={(e) => set({ allergies: e.target.value })}
             maxLength={300} />
         </FormBlock>
       </div>
 
       <div className="footbar">
         <div className="summary-text">
-          With <b>{physician.name}</b> · <b>{
-            new Date((draft.dateISO) + "T00:00:00").toLocaleDateString(undefined,
-              { weekday: "short", month: "short", day: "numeric" })} · {draft.time}</b>
+          With <b>{physician.name}</b> · <b>{shortDate(draft.dateISO)} · {draft.time}</b>
         </div>
         <div className="row gap-2">
           <button className="btn btn-secondary" onClick={onBack}>Back</button>
-          <button className="btn btn-primary" disabled={!canContinue} onClick={onContinue}>
+          <button className="btn btn-primary" disabled={!draft.reason} onClick={onContinue}>
             Continue <Icon name="arrow_r" size={16} />
           </button>
         </div>
@@ -162,10 +155,7 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
 
 function FormBlock({ label, optional, required, trailing, last, children }) {
   return (
-    <div style={{
-      padding: "20px 24px",
-      borderBottom: last ? "0" : "1px solid var(--line)",
-    }}>
+    <div style={{ padding: "20px 24px", borderBottom: last ? "0" : "1px solid var(--line)" }}>
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         gap: 12, marginBottom: 10,
@@ -190,8 +180,7 @@ function ChipGroup({ options, value, onChange }) {
   return (
     <div className="row gap-2" style={{ flexWrap: "wrap" }}>
       {items.map((o) => (
-        <button key={o.id}
-          type="button"
+        <button key={o.id} type="button"
           className={"chip " + (value === o.id ? "is-active" : "")}
           onClick={() => onChange(o.id)}
           title={o.desc || undefined}>
@@ -204,31 +193,36 @@ function ChipGroup({ options, value, onChange }) {
 
 function ToggleNone({ active, label, onClick }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        height: 26, padding: "0 10px",
-        border: "1px solid " + (active ? "var(--accent)" : "var(--line)"),
-        background: active ? "var(--accent-tint)" : "transparent",
-        color: active ? "var(--accent-dark)" : "var(--ink-2)",
-        borderRadius: 999, fontSize: 12.5, fontWeight: 500,
-        display: "inline-flex", alignItems: "center", gap: 6,
-        cursor: "pointer",
-      }}>
+    <button type="button" onClick={onClick} style={{
+      height: 26, padding: "0 10px",
+      border: "1px solid " + (active ? "var(--accent)" : "var(--line)"),
+      background: active ? "var(--accent-tint)" : "transparent",
+      color: active ? "var(--accent-dark)" : "var(--ink-2)",
+      borderRadius: 999, fontSize: 12.5, fontWeight: 500,
+      display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer",
+    }}>
       {active && <Icon name="check" size={12} />}
       {label}
     </button>
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-//  REVIEW & SUBMIT
-// ════════════════════════════════════════════════════════════════
+// ─── Review ─────────────────────────────────────────────────────
+
+function SumRow({ label, onChange, children }) {
+  return (
+    <div className="sum-row">
+      <div className="l">{label}</div>
+      <div className="v">{children}</div>
+      {onChange ? <button className="edit" onClick={onChange}>Change</button> : <div />}
+    </div>
+  );
+}
 
 function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting }) {
-  const dateObj = new Date(draft.dateISO + "T00:00:00");
   const reasonObj = REASONS.find((r) => r.id === draft.reason);
+  const hasClinical = draft.duration || draft.severity || draft.trend || draft.priorTreatment;
+  const hasMedical  = draft.medications || draft.allergies;
 
   return (
     <div className="page">
@@ -236,7 +230,7 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
         <Icon name="arrow_l" size={14} /> Back
       </button>
 
-      <Stepper steps={["Choose physician", "Pick a time", "Visit details", "Review & submit"]} current={3} />
+      <Stepper steps={FLOW_STEPS} current={3} />
 
       <div className="page-header">
         <div>
@@ -257,39 +251,26 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
           <button className="edit" onClick={() => onJumpTo("detail")}>Change</button>
         </div>
 
-        <div className="sum-row">
-          <div className="l">When</div>
-          <div className="v mono">
-            <b>{formatDayLong(dateObj)}</b> · {draft.time}
-          </div>
-          <button className="edit" onClick={() => onJumpTo("detail")}>Change</button>
-        </div>
+        <SumRow label="When" onChange={() => onJumpTo("detail")}>
+          <span className="mono"><b>{formatDayLong(fromISO(draft.dateISO))}</b> · {draft.time}</span>
+        </SumRow>
 
-        <div className="sum-row">
-          <div className="l">Visit type</div>
-          <div className="v">
-            <Icon name="building" size={13} /> In-person · {physician.location}
-          </div>
-          <button className="edit" onClick={() => onJumpTo("detail")}>Change</button>
-        </div>
+        <SumRow label="Visit type" onChange={() => onJumpTo("detail")}>
+          <Icon name="building" size={13} /> In-person · {physician.location}
+        </SumRow>
 
-        <div className="sum-row">
-          <div className="l">Reason</div>
-          <div className="v">
-            <b>{reasonObj ? reasonObj.title : "—"}</b>
-            {draft.notes && (
-              <div className="muted" style={{ fontSize: 13, marginTop: 4, maxWidth: 560 }}>
-                "{draft.notes}"
-              </div>
-            )}
-          </div>
-          <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
-        </div>
+        <SumRow label="Reason" onChange={() => onJumpTo("reason")}>
+          <b>{reasonObj ? reasonObj.title : "—"}</b>
+          {draft.notes && (
+            <div className="muted" style={{ fontSize: 13, marginTop: 4, maxWidth: 560 }}>
+              "{draft.notes}"
+            </div>
+          )}
+        </SumRow>
 
-        {(draft.duration || draft.severity || draft.trend || draft.priorTreatment) && (
-          <div className="sum-row">
-            <div className="l">Clinical context</div>
-            <div className="v" style={{ fontSize: 13 }}>
+        {hasClinical && (
+          <SumRow label="Clinical context" onChange={() => onJumpTo("reason")}>
+            <div style={{ fontSize: 13 }}>
               {draft.duration && <div><span className="muted">Duration:</span> <b>{draft.duration}</b></div>}
               {draft.severity && <div><span className="muted">Severity:</span> <b style={{ textTransform: "capitalize" }}>{draft.severity}</b></div>}
               {draft.trend && <div><span className="muted">Trend:</span> <b style={{ textTransform: "capitalize" }}>{draft.trend}</b></div>}
@@ -299,14 +280,12 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
                 </div>
               )}
             </div>
-            <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
-          </div>
+          </SumRow>
         )}
 
-        {(draft.medications || draft.allergies) && (
-          <div className="sum-row">
-            <div className="l">Medical background</div>
-            <div className="v" style={{ fontSize: 13 }}>
+        {hasMedical && (
+          <SumRow label="Medical background" onChange={() => onJumpTo("reason")}>
+            <div style={{ fontSize: 13 }}>
               {draft.medications && (
                 <div style={{ maxWidth: 560 }}>
                   <span className="muted">Medications:</span> {draft.medications}
@@ -318,26 +297,19 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
                 </div>
               )}
             </div>
-            <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
-          </div>
+          </SumRow>
         )}
 
-        <div className="sum-row">
-          <div className="l">Patient</div>
-          <div className="v">
-            <b>Bill Sato</b>
-            <div className="muted" style={{ fontSize: 13 }}>
-              DOB Aug 04, 1989 · Member ID <span className="mono">BC-4837-2210</span>
-            </div>
+        <SumRow label="Patient">
+          <b>Bill Sato</b>
+          <div className="muted" style={{ fontSize: 13 }}>
+            DOB Aug 04, 1989 · Member ID <span className="mono">BC-4837-2210</span>
           </div>
-          <button className="edit">Change</button>
-        </div>
+        </SumRow>
 
-        <div className="sum-row">
-          <div className="l">Confirm via</div>
-          <div className="v">{draft.contact || "Text"} · ending in 4421</div>
-          <button className="edit" onClick={() => onJumpTo("reason")}>Change</button>
-        </div>
+        <SumRow label="Confirm via" onChange={() => onJumpTo("reason")}>
+          {draft.contact || "Text"} · ending in 4421
+        </SumRow>
       </div>
 
       <div className="notice">
@@ -368,12 +340,22 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
   );
 }
 
-// ════════════════════════════════════════════════════════════════
-//  CONFIRMATION
-// ════════════════════════════════════════════════════════════════
+// ─── Confirmation ───────────────────────────────────────────────
+
+function TimelineStep({ state, num, title, desc }) {
+  return (
+    <div className={"tl-item " + (state || "")}>
+      <span className="tl-dot">{state === "is-done" ? <Icon name="check" size={12} /> : num}</span>
+      <div>
+        <div className="tl-title">{title}</div>
+        <div className="tl-desc">{desc}</div>
+      </div>
+    </div>
+  );
+}
 
 function ConfirmationScreen({ physician, draft, requestId, onStartOver }) {
-  const dateObj = new Date(draft.dateISO + "T00:00:00");
+  const contact = (draft.contact || "Text").toLowerCase();
   return (
     <div className="page">
       <div className="confirm-wrap">
@@ -402,14 +384,12 @@ function ConfirmationScreen({ physician, draft, requestId, onStartOver }) {
           </div>
           <div className="sum-row">
             <div className="l">When</div>
-            <div className="v mono"><b>{formatDayLong(dateObj)}</b> · {draft.time}</div>
+            <div className="v mono"><b>{formatDayLong(fromISO(draft.dateISO))}</b> · {draft.time}</div>
             <div />
           </div>
           <div className="sum-row">
             <div className="l">Where</div>
-            <div className="v">
-              {physician.location}
-            </div>
+            <div className="v">{physician.location}</div>
             <div />
           </div>
         </div>
@@ -419,38 +399,18 @@ function ConfirmationScreen({ physician, draft, requestId, onStartOver }) {
             <h3 className="section-h">What happens next</h3>
           </div>
           <div className="timeline">
-            <div className="tl-item is-done">
-              <span className="tl-dot"><Icon name="check" size={12} /></span>
-              <div>
-                <div className="tl-title">Request submitted</div>
-                <div className="tl-desc">Just now — we've forwarded your request to the office.</div>
-              </div>
-            </div>
-            <div className="tl-item is-active">
-              <span className="tl-dot">2</span>
-              <div>
-                <div className="tl-title">Provider reviews & confirms</div>
-                <div className="tl-desc">
-                  Within 24 hours · we'll {(draft.contact || "Text").toLowerCase()} you ending in 4421.
-                </div>
-              </div>
-            </div>
-            <div className="tl-item">
-              <span className="tl-dot">3</span>
-              <div>
-                <div className="tl-title">Intake forms (5 min)</div>
-                <div className="tl-desc">Quick health history, sent the day before your visit.</div>
-              </div>
-            </div>
-            <div className="tl-item">
-              <span className="tl-dot">4</span>
-              <div>
-                <div className="tl-title">Your visit</div>
-                <div className="tl-desc">
-                  Arrive 10 minutes early at {physician.location.split(" — ")[0]}.
-                </div>
-              </div>
-            </div>
+            <TimelineStep state="is-done" num="1"
+              title="Request submitted"
+              desc="Just now — we've forwarded your request to the office." />
+            <TimelineStep state="is-active" num="2"
+              title="Provider reviews & confirms"
+              desc={`Within 24 hours · we'll ${contact} you ending in 4421.`} />
+            <TimelineStep num="3"
+              title="Intake forms (5 min)"
+              desc="Quick health history, sent the day before your visit." />
+            <TimelineStep num="4"
+              title="Your visit"
+              desc={`Arrive 10 minutes early at ${physician.location.split(" — ")[0]}.`} />
           </div>
         </div>
 
