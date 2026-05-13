@@ -37,9 +37,9 @@ A lot of key decisions were made when choosing infrastructure (production vs. ju
 
 - **localStorage used as a lightweight pub/sub system.** Since the browser’s built-in storage event only works across tabs, a custom window event is also fired on every write so updates work in the same tab too. Both the patient and physician views listen to these events by a `Store.subscribe(setBookings)` handler that is in [shared/store.js](shared/store.js), it keeps data synced across all views.
 
-- **No strict data structure.** The booking format is only set when the form is submitted, and the rest of the app reads the data directly and uses `?.` and `??` to avoid crashes if something is missing. There’s no shared schema or validation layer, so the structure isn’t enforced anywhere. This keeps things simple, but if the data shape changes, you have to update all the places that use it.
+- **No strict data structure.** There’s no central definition of what a booking should look like — the shape is just whatever the form happens to save. Everywhere else in the app, when something reads a booking, it uses safe-access operators (`?.` and `??`) so that if a field is missing, the app shows a fallback value instead of crashing. The upside is that it’s quick to build and easy to change. The downside is that if the booking shape ever changes, you have to hunt down every place that touches it, because nothing will warn me in advance.
 
-- **Append-only `adminEvents` log.** Instead of updating existing records, every status change adds a new entry (`{ at, action, by? }`). The physician timeline just reads this log as-is. It’s easy to extend with new event types, but it means the history grows over time instead of being overwritten. Obviously again, easy to code and better for a take home but never for production (too much data gets added on).
+- **Append-only `adminEvents` log.** When a booking’s status changes (for example, from "pending" to "confirmed"), instead of overwriting the old status, we add a new entry to a list — each entry records *what* happened, *when*, and *who* did it (`{ at, action, by? }`). The physician’s timeline view just reads this list from top to bottom to show the booking’s history. This makes it easy to add new event types later and gives you a full audit trail for free, but the list only grows  (it never shrinks) so in a real production app you’d eventually need to archive or trim old entries to keep storage somewhat manageable.
 
 - **Reschedule uses the same screen.** A `rescheduleMode` flag just switches the text and buttons so the same picker works for rescheduling without a separate page. The parent app controls the flow by swapping the `onBack` and `onContinue` handlers, so it’s one component handling both flows without duplication.
 
@@ -47,7 +47,7 @@ A lot of key decisions were made when choosing infrastructure (production vs. ju
 
 - **For a real version of this app, I’d use Vite + React + TypeScript (`.tsx` files).** As mentioned earlier, JSX in this project was mainly used to avoid any `npm` installs. Each screen is a single `.jsx` file that you can read top to bottom without chasing imports. Nothing is hidden behind a build step or source map.
 
-  There are obvious downsides—slow load times, no types, no tree-shaking, and no minification—but these only matter if real users are actually using the site.
+  There are obvious downsides like slow load times, no types, no tree-shaking, and no minification—but these only matter if real users are actually using the site.
 
 - **A real backend.** Replace localStorage with AN ACTUAL database (probably Postgres or MongoDB for larger storage needs, because I have the most experience with them) and an API the two apps talk to over HTTP. Use WebSockets for the live updates instead of the localStorage event. That would actually make the app a little more feasible for production, so multiple patients & physicians can use the system at the same time without sharing a browser.
 
