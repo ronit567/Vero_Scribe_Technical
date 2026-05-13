@@ -7,7 +7,7 @@ Two browser apps that talk to each other through the same `localStorage`.
 No build step — Open two tabs **on the same origin** so the localStorage bus works.
 
 ```bash
-cd Vero_Techical
+cd Vero_Scribe_Technical
 python3 -m http.server 8000     # or: npx serve .
 ```
 
