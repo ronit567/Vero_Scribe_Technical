@@ -1,6 +1,6 @@
 # Vero — Patient Booking + Physician Console
 
-Two browser apps that talk to each other through the same `localStorage`.
+Two browser apps that talk to each other through the same `localStorage`. All physician & paitent information is just LLM mock data
 
 ## Run it
 
