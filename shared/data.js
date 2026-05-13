@@ -185,36 +185,20 @@ const SPECIALTIES = [
   "OB-GYN",
 ];
 
-// Deterministic pseudo-random — same physician+date always yields the same slots.
-function hashSeed(str) {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h = Math.imul(h ^ str.charCodeAt(i), 16777619);
-  }
-  return h >>> 0;
-}
-function seededRand(seed) {
-  let s = seed;
-  return () => {
-    s = Math.imul(s ^ (s >>> 15), 2246822507);
-    s = Math.imul(s ^ (s >>> 13), 3266489917);
-    s ^= s >>> 16;
-    return (s >>> 0) / 4294967296;
-  };
-}
-
 const MORNING_POOL   = ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"];
 const AFTERNOON_POOL = ["12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"];
 const EVENING_POOL   = ["4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM"];
 
+// Same physician+date always yields the same slots — a deterministic mask, not real randomness.
 function slotsFor(physicianId, dateISO) {
-  const rng = seededRand(hashSeed(physicianId + ":" + dateISO));
+  let seed = 0;
+  for (const c of physicianId + dateISO) seed = (seed * 31 + c.charCodeAt(0)) | 0;
+  const pick = (pool, every) => pool.filter((_, i) => (seed + i) % every !== 0);
   const isWeekend = [0, 6].includes(new Date(dateISO + "T00:00:00").getDay());
-  const pick = (pool, prob) => pool.filter(() => rng() < prob);
   return {
-    morning:   isWeekend ? [] : pick(MORNING_POOL, 0.45),
-    afternoon: pick(AFTERNOON_POOL, isWeekend ? 0.2 : 0.55),
-    evening:   isWeekend ? [] : pick(EVENING_POOL, 0.35),
+    morning:   isWeekend ? [] : pick(MORNING_POOL, 2),
+    afternoon: pick(AFTERNOON_POOL, isWeekend ? 4 : 2),
+    evening:   isWeekend ? [] : pick(EVENING_POOL, 3),
   };
 }
 

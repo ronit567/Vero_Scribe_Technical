@@ -13,13 +13,12 @@ const writeStore = (all) => {
 };
 
 window.Store = {
-  KEY: STORE_KEY,
   list: readStore,
   add: (b) => writeStore([b, ...readStore()]),
   update: (id, patch) => writeStore(readStore().map((b) => b.id === id ? { ...b, ...patch } : b)),
   subscribe(cb) {
     const handler = (e) => {
-      if (!e || e.type === STORE_KEY || e.key === STORE_KEY || e.key === null) cb(readStore());
+      if (e.type === STORE_KEY || e.key === STORE_KEY) cb(readStore());
     };
     window.addEventListener("storage", handler);
     window.addEventListener(STORE_KEY, handler);

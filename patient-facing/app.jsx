@@ -86,7 +86,7 @@ function App() {
       physicianId: id,
       dateISO: toISO(addDays(new Date(), p.nextAvail)),
       time: null,
-      visitType: p.visitTypes.includes("in-person") ? "in-person" : "virtual",
+      visitType: "in-person",
     });
     go({ name: "detail" });
   };
@@ -140,7 +140,7 @@ function App() {
       physicianId: visit.physicianId,
       dateISO: visit.dateISO || visit.appointment?.dateISO,
       time: visit.time,
-      visitType: visit.appointment?.visitType || "in-person",
+      visitType: "in-person",
     });
     go({ name: "detail" });
   };

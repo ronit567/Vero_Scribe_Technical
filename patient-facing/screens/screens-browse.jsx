@@ -133,21 +133,9 @@ function PhysicianCards({ list, onSelect }) {
 // ════════════════════════════════════════════════════════════════
 
 function DetailScreen({ physician, draft, setDraft, onBack, onContinue, rescheduleMode }) {
-  const today = React.useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, []);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const [weekStart, setWeekStart] = React.useState(today);
-
-  React.useEffect(() => {
-    if (draft.visitType !== "in-person") setDraft({ ...draft, visitType: "in-person" });
-  }, [physician.id]);
-
-  const days = React.useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    [weekStart]
-  );
+  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   const selectedDate = draft.dateISO || toISO(addDays(today, physician.nextAvail));
   const slots = React.useMemo(
