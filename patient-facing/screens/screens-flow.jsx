@@ -279,7 +279,7 @@ function ReviewScreen({ physician, draft, onBack, onJumpTo, onSubmit, submitting
         )}
 
         <SumRow label="Patient">
-          <b>Bill Sato</b>
+          <b>Bill S.</b>
           <div className="muted" style={{ fontSize: 13 }}>
             DOB Aug 04, 1989 · Member ID <span className="mono">BC-4837-2210</span>
           </div>

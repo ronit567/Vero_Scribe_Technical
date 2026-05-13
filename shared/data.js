@@ -208,7 +208,7 @@ function physicianById(id) {
 
 const DEMO_PATIENT = {
   id: "p-bill",
-  name: "Bill Sato",
+  name: "Bill S.",
   dob: "1989-08-04",
   memberId: "BC-4837-2210",
   phone: "•••• 4421",

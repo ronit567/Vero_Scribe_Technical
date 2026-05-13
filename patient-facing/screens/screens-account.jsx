@@ -228,7 +228,7 @@ function ProfileScreen() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h2 style={{ fontSize: 24, fontWeight: 600, margin: 0, letterSpacing: "-0.01em" }}>
-              Bill Sato
+              Bill S.
             </h2>
             <span className="tag tag-accent">
               <Icon name="shield" size={11} /> Verified patient
@@ -263,7 +263,7 @@ function ProfileScreen() {
             <button className="edit">Edit</button>
           </div>
           <dl className="kv" style={{ padding: "8px 20px 20px", gridTemplateColumns: "150px 1fr", rowGap: 10 }}>
-            <dt>Legal name</dt><dd>Bill Sato</dd>
+            <dt>Legal name</dt><dd>Bill S.</dd>
             <dt>Preferred name</dt><dd>Bill</dd>
             <dt>Pronouns</dt><dd>he / him</dd>
             <dt>Date of birth</dt><dd className="mono">Aug 04, 1989</dd>
