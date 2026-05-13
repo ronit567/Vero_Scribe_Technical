@@ -146,7 +146,7 @@ function PhysicianCards({ list, onSelect }) {
 //  PHYSICIAN DETAIL  — bio + integrated date/time picker
 // ════════════════════════════════════════════════════════════════
 
-function DetailScreen({ physician, draft, setDraft, onBack, onContinue }) {
+function DetailScreen({ physician, draft, setDraft, onBack, onContinue, rescheduleMode }) {
   const today = React.useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -181,7 +181,7 @@ function DetailScreen({ physician, draft, setDraft, onBack, onContinue }) {
   return (
     <div className="page">
       <button className="crumb" onClick={onBack}>
-        <Icon name="arrow_l" size={14} /> Back to results
+        <Icon name="arrow_l" size={14} /> {rescheduleMode ? "Back to visits" : "Back to results"}
       </button>
 
       <div className="detail-grid">
@@ -243,7 +243,7 @@ function DetailScreen({ physician, draft, setDraft, onBack, onContinue }) {
 
         {/* Right column — booking sidebar */}
         <div className="card booking">
-          <h3>Request an appointment</h3>
+          <h3>{rescheduleMode ? "Pick a new time" : "Request an appointment"}</h3>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--surface-2)", borderRadius: 10, marginBottom: 16, fontSize: 13, color: "var(--ink-1)" }}>
             <Icon name="building" size={14} />
@@ -306,10 +306,12 @@ function DetailScreen({ physician, draft, setDraft, onBack, onContinue }) {
             className="btn btn-primary btn-lg btn-block"
             disabled={!draft.time}
             onClick={onContinue}>
-            Continue <Icon name="arrow_r" size={16} />
+            {rescheduleMode ? <>Confirm reschedule <Icon name="check" size={16} /></> : <>Continue <Icon name="arrow_r" size={16} /></>}
           </button>
           <div style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 10, textAlign: "center" }}>
-            Provider confirms within 24 hours
+            {rescheduleMode
+              ? "Office re-confirms your new time within 24 hours"
+              : "Provider confirms within 24 hours"}
           </div>
         </div>
       </div>

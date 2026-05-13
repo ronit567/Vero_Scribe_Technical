@@ -58,6 +58,7 @@ function App() {
   const [draft, setDraft]         = React.useState(DEFAULT_DRAFT);
   const [submitting, setSubmitting] = React.useState(false);
   const [requestId, setRequestId] = React.useState(null);
+  const [rescheduleId, setRescheduleId] = React.useState(null);
   const [bookings, setBookings]   = React.useState(() => Store.list());
 
   React.useEffect(() => Store.subscribe(setBookings), []);
@@ -124,6 +125,53 @@ function App() {
     go({ name: "browse" });
   };
 
+  const onReschedule = (visit) => {
+    setRescheduleId(visit.id);
+    setDraft({
+      ...DEFAULT_DRAFT,
+      physicianId: visit.physicianId,
+      dateISO: visit.dateISO || visit.appointment?.dateISO,
+      time: visit.time,
+      visitType: visit.appointment?.visitType || "in-person",
+    });
+    go({ name: "detail" });
+  };
+
+  const onConfirmReschedule = () => {
+    const visit = bookings.find((b) => b.id === rescheduleId);
+    if (!visit) return;
+    const p = physicianById(draft.physicianId);
+    const date = new Date(draft.dateISO + "T00:00:00")
+      .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    Store.update(rescheduleId, {
+      status: "pending",
+      date,
+      dateISO: draft.dateISO,
+      time: draft.time,
+      appointment: {
+        ...(visit.appointment || {}),
+        dateISO: draft.dateISO,
+        date,
+        time: draft.time,
+        visitType: draft.visitType,
+        location: p ? p.location : visit.appointment?.location,
+      },
+      adminEvents: [
+        ...(visit.adminEvents || []),
+        { at: new Date().toISOString(), action: "rescheduled", by: "patient" },
+      ],
+    });
+    setRescheduleId(null);
+    setDraft(DEFAULT_DRAFT);
+    go({ name: "visits" });
+  };
+
+  const onCancelReschedule = () => {
+    setRescheduleId(null);
+    setDraft(DEFAULT_DRAFT);
+    go({ name: "visits" });
+  };
+
   return (
     <>
       <AppBar go={go} currentRoute={route.name} />
@@ -134,6 +182,7 @@ function App() {
           requestId={requestId}
           onBookNew={() => go({ name: "browse" })}
           onOpenConfirmation={(id) => { setRequestId(id); go({ name: "confirmed" }); }}
+          onReschedule={onReschedule}
         />
       )}
 
@@ -149,8 +198,9 @@ function App() {
       {route.name === "detail" && physician && (
         <DetailScreen
           physician={physician} draft={draft} setDraft={setDraft}
-          onBack={() => go({ name: "browse" })}
-          onContinue={() => go({ name: "reason" })}
+          rescheduleMode={!!rescheduleId}
+          onBack={rescheduleId ? onCancelReschedule : () => go({ name: "browse" })}
+          onContinue={rescheduleId ? onConfirmReschedule : () => go({ name: "reason" })}
         />
       )}
 

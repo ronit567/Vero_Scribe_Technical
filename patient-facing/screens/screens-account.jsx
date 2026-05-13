@@ -17,7 +17,7 @@ const PAST_VISITS = [
 
 // ─── Visits ─────────────────────────────────────────────────────
 
-function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation }) {
+function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation, onReschedule }) {
   const onCancel = (visit) => {
     const p = physicianById(visit.physicianId);
     const ok = window.confirm(
@@ -61,6 +61,7 @@ function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation 
               visit={v}
               onView={v.id === requestId ? () => onOpenConfirmation(v.id) : null}
               onCancel={onCancel}
+              onReschedule={onReschedule}
               onBookAgain={onBookNew} />
           ))}
         </div>
@@ -119,7 +120,7 @@ function StatusTag({ status }) {
 
 const ghostBtnSm = { height: 28, padding: "0 8px", color: "var(--ink-2)", fontSize: 13 };
 
-function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
+function VisitCardUpcoming({ visit, onView, onCancel, onReschedule, onBookAgain }) {
   const p = physicianById(visit.physicianId);
   const status = visit.status || "pending";
   const isInactive = status === "declined" || status === "cancelled";
@@ -156,7 +157,9 @@ function VisitCardUpcoming({ visit, onView, onCancel, onBookAgain }) {
         )}
         {status === "confirmed" && (
           <>
-            <button className="btn btn-secondary">Reschedule</button>
+            <button className="btn btn-secondary" onClick={() => onReschedule && onReschedule(visit)}>
+              Reschedule
+            </button>
             <button className="btn btn-ghost" style={ghostBtnSm} onClick={() => onCancel(visit)}>
               Cancel
             </button>
