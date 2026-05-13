@@ -1,8 +1,7 @@
 // vero — main App: routing + state + AppBar
 
 const DEFAULT_FILTERS = {
-  q: "", specialty: "All specialties", visit: "any",
-  insurance: "BlueCross PPO", language: "Any language", thisWeek: false,
+  q: "", specialty: "All specialties", language: "Any language", thisWeek: false,
 };
 
 const DEFAULT_DRAFT = {
@@ -17,6 +16,10 @@ const NAV = [
   { id: "visits",  label: "Visits" },
   { id: "profile", label: "Profile" },
 ];
+
+const formatBookingDate = (iso) =>
+  new Date(iso + "T00:00:00").toLocaleDateString(undefined,
+    { month: "short", day: "numeric", year: "numeric" });
 
 function AppBar({ go, currentRoute }) {
   return (
@@ -53,13 +56,13 @@ function AppBar({ go, currentRoute }) {
 }
 
 function App() {
-  const [route, setRoute]         = React.useState({ name: "browse" });
-  const [filters, setFilters]     = React.useState(DEFAULT_FILTERS);
-  const [draft, setDraft]         = React.useState(DEFAULT_DRAFT);
-  const [submitting, setSubmitting] = React.useState(false);
-  const [requestId, setRequestId] = React.useState(null);
+  const [route, setRoute]               = React.useState({ name: "browse" });
+  const [filters, setFilters]           = React.useState(DEFAULT_FILTERS);
+  const [draft, setDraft]               = React.useState(DEFAULT_DRAFT);
+  const [submitting, setSubmitting]     = React.useState(false);
+  const [requestId, setRequestId]       = React.useState(null);
   const [rescheduleId, setRescheduleId] = React.useState(null);
-  const [bookings, setBookings]   = React.useState(() => Store.list());
+  const [bookings, setBookings]         = React.useState(() => Store.list());
 
   React.useEffect(() => Store.subscribe(setBookings), []);
 
@@ -68,6 +71,12 @@ function App() {
   const go = (r) => {
     setRoute(r);
     window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  const exitReschedule = (target) => {
+    setRescheduleId(null);
+    setDraft(DEFAULT_DRAFT);
+    go({ name: target });
   };
 
   const onSelectPhysician = (id) => {
@@ -87,9 +96,8 @@ function App() {
     setTimeout(() => {
       const id = "VR-" + Math.random().toString(36).slice(2, 8).toUpperCase();
       const p = physicianById(draft.physicianId);
-      const date = new Date(draft.dateISO + "T00:00:00")
-        .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-      const reasonTitle = (REASONS.find((r) => r.id === draft.reason) || {}).title || "Visit";
+      const date = formatBookingDate(draft.dateISO);
+      const reasonTitle = REASONS.find((r) => r.id === draft.reason)?.title || "Visit";
       Store.add({
         id,
         createdAt: new Date().toISOString(),
@@ -102,7 +110,7 @@ function App() {
         patient: { ...DEMO_PATIENT },
         appointment: {
           dateISO: draft.dateISO, date, time: draft.time,
-          visitType: draft.visitType, location: p ? p.location : null,
+          visitType: draft.visitType, location: p?.location ?? null,
         },
         intake: {
           reason: draft.reason, reasonTitle, notes: draft.notes,
@@ -141,35 +149,26 @@ function App() {
     const visit = bookings.find((b) => b.id === rescheduleId);
     if (!visit) return;
     const p = physicianById(draft.physicianId);
-    const date = new Date(draft.dateISO + "T00:00:00")
-      .toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+    const date = formatBookingDate(draft.dateISO);
     Store.update(rescheduleId, {
       status: "pending",
       date,
       dateISO: draft.dateISO,
       time: draft.time,
       appointment: {
-        ...(visit.appointment || {}),
+        ...(visit.appointment ?? {}),
         dateISO: draft.dateISO,
         date,
         time: draft.time,
         visitType: draft.visitType,
-        location: p ? p.location : visit.appointment?.location,
+        location: p?.location ?? visit.appointment?.location,
       },
       adminEvents: [
-        ...(visit.adminEvents || []),
+        ...(visit.adminEvents ?? []),
         { at: new Date().toISOString(), action: "rescheduled", by: "patient" },
       ],
     });
-    setRescheduleId(null);
-    setDraft(DEFAULT_DRAFT);
-    go({ name: "visits" });
-  };
-
-  const onCancelReschedule = () => {
-    setRescheduleId(null);
-    setDraft(DEFAULT_DRAFT);
-    go({ name: "visits" });
+    exitReschedule("visits");
   };
 
   return (
@@ -199,7 +198,7 @@ function App() {
         <DetailScreen
           physician={physician} draft={draft} setDraft={setDraft}
           rescheduleMode={!!rescheduleId}
-          onBack={rescheduleId ? onCancelReschedule : () => go({ name: "browse" })}
+          onBack={rescheduleId ? () => exitReschedule("visits") : () => go({ name: "browse" })}
           onContinue={rescheduleId ? onConfirmReschedule : () => go({ name: "reason" })}
         />
       )}

@@ -2,7 +2,13 @@
 
 const TREND_LABELS = { improving: "Improving", same: "About the same", worsening: "Getting worse" };
 
-function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
+const EVENT_LABELS = {
+  confirmed: "Confirmed by admin",
+  cancelled: "Cancelled by patient",
+  declined:  "Declined by admin",
+};
+
+const capitalize = (s) => s ? s[0].toUpperCase() + s.slice(1) : "";
 
 function formatDOB(dob) {
   if (!dob) return "";
@@ -50,7 +56,7 @@ function ActionFooter({ booking, intake, onConfirm, onDecline }) {
         Decline request
       </button>
       <span className="spacer" />
-      <span className="admin-history">Patient will be notified via {intake.contact || "Text"}.</span>
+      <span className="admin-history">Patient will be notified via {intake.contact ?? "Text"}.</span>
     </>
   );
   if (booking.status === "confirmed") return (
@@ -86,13 +92,13 @@ function ActionFooter({ booking, intake, onConfirm, onDecline }) {
 function AppointmentDetail({ booking, onClose, onConfirm, onDecline }) {
   if (!booking) return null;
   const p = physicianById(booking.physicianId);
-  const intake = booking.intake || {};
-  const appt = booking.appointment || {};
-  const patient = booking.patient || {};
-  const iso = appt.dateISO || booking.dateISO;
+  const intake  = booking.intake      ?? {};
+  const appt    = booking.appointment ?? {};
+  const patient = booking.patient     ?? {};
+  const iso = appt.dateISO ?? booking.dateISO;
   const longDate = iso ? formatDayLong(new Date(iso + "T00:00:00")) : booking.date;
   const age = ageFrom(patient.dob);
-  const events = booking.adminEvents || [];
+  const events = booking.adminEvents ?? [];
 
   return (
     <div className="admin-detail">
@@ -100,7 +106,7 @@ function AppointmentDetail({ booking, onClose, onConfirm, onDecline }) {
         <div className="avatar-lg">{initialsOf(patient.name)}</div>
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="id">{booking.id}</div>
-          <div className="ttl">{patient.name || "—"}</div>
+          <div className="ttl">{patient.name ?? "—"}</div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <StatusPill status={booking.status} />
             <SeverityBadge severity={intake.severity} />
@@ -133,23 +139,23 @@ function AppointmentDetail({ booking, onClose, onConfirm, onDecline }) {
 
       <Section title="Appointment">
         <KV label="Physician" value={p ? `${p.name}, ${p.credentials}` : "—"} />
-        <KV label="Specialty" value={p ? p.specialty : ""} />
+        <KV label="Specialty" value={p?.specialty} />
         <KV label="When"
-            value={longDate ? `${longDate} · ${appt.time || booking.time} (${timeUntil(iso)})` : ""} />
+            value={longDate ? `${longDate} · ${appt.time ?? booking.time} (${timeUntil(iso)})` : ""} />
         <KV label="Visit type"
             value={appt.visitType ? (appt.visitType === "virtual" ? "Virtual" : "In-person") : ""} />
-        <KV label="Location" value={appt.location || (p && p.location)} />
+        <KV label="Location" value={appt.location ?? p?.location} />
       </Section>
 
       <Section title="Chief complaint">
-        <KV label="Visit reason" value={intake.reasonTitle || booking.reason} />
+        <KV label="Visit reason" value={intake.reasonTitle ?? booking.reason} />
         <KV label="Patient's notes" value={intake.notes} />
       </Section>
 
       <Section title="Clinical context">
         <KV label="Duration" value={intake.duration} />
         <KV label="Severity" value={capitalize(intake.severity)} />
-        <KV label="Trend"    value={TREND_LABELS[intake.trend] || ""} />
+        <KV label="Trend"    value={TREND_LABELS[intake.trend] ?? ""} />
         <KV label="Tried so far" value={intake.priorTreatment} />
       </Section>
 
@@ -167,18 +173,13 @@ function AppointmentDetail({ booking, onClose, onConfirm, onDecline }) {
               <span className="lbl">Request submitted by patient</span>
               <span className="time">{booking.createdAt ? relativeTime(booking.createdAt) : ""}</span>
             </div>
-            {events.map((e, i) => {
-              const label = e.action === "confirmed" ? "Confirmed by admin"
-                          : e.action === "cancelled" ? "Cancelled by patient"
-                          : "Declined by admin";
-              return (
-                <div key={i} className={"ev " + (e.action === "confirmed" ? "ev-pos" : "ev-neg")}>
-                  <span className="ico" />
-                  <span className="lbl">{label}</span>
-                  <span className="time">{relativeTime(e.at)}</span>
-                </div>
-              );
-            })}
+            {events.map((e, i) => (
+              <div key={i} className={"ev " + (e.action === "confirmed" ? "ev-pos" : "ev-neg")}>
+                <span className="ico" />
+                <span className="lbl">{EVENT_LABELS[e.action] ?? "Declined by admin"}</span>
+                <span className="time">{relativeTime(e.at)}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

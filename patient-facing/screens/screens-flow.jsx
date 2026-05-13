@@ -14,11 +14,9 @@ const TREND_OPTS = [
 ];
 const DURATION_OPTS = ["< 24 hours", "1–3 days", "4–7 days", "1–4 weeks", "1–3 months", "> 3 months"];
 
-function fromISO(iso) { return new Date(iso + "T00:00:00"); }
-function shortDate(iso) {
-  return fromISO(iso).toLocaleDateString(undefined,
-    { weekday: "short", month: "short", day: "numeric" });
-}
+const fromISO = (iso) => new Date(iso + "T00:00:00");
+const shortDate = (iso) =>
+  fromISO(iso).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 
 function ApptPill({ physician, draft }) {
   return (
@@ -72,11 +70,11 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         <FormBlock label="Anything we should know?" optional>
           <textarea className="textarea"
             placeholder="e.g. Persistent cough for the past 10 days, worse at night. No fever."
-            value={draft.notes || ""}
+            value={draft.notes ?? ""}
             onChange={(e) => set({ notes: e.target.value })}
             maxLength={500} />
           <div className="field-help" style={{ textAlign: "right", marginTop: 4 }}>
-            {(draft.notes || "").length} / 500
+            {(draft.notes ?? "").length} / 500
           </div>
         </FormBlock>
 
@@ -95,7 +93,7 @@ function ReasonScreen({ physician, draft, setDraft, onBack, onContinue }) {
         <FormBlock label="What have you tried so far?" optional>
           <textarea className="textarea"
             placeholder="e.g. OTC ibuprofen 400 mg twice daily, rest. Some short-term relief."
-            value={draft.priorTreatment || ""}
+            value={draft.priorTreatment ?? ""}
             onChange={(e) => set({ priorTreatment: e.target.value })}
             maxLength={300} />
         </FormBlock>
@@ -188,7 +186,7 @@ function NoneField({ label, last, noneValue, noneLabel, placeholder, value, onCh
         onClick={() => onChange(isNone ? "" : noneValue)} />}>
       <textarea className="textarea"
         placeholder={placeholder}
-        value={isNone ? "" : (value || "")}
+        value={isNone ? "" : (value ?? "")}
         disabled={isNone}
         onChange={(e) => onChange(e.target.value)}
         maxLength={maxLength} />

@@ -9,7 +9,7 @@ function StatusPill({ status }) {
 
 function SeverityBadge({ severity }) {
   if (!severity) return null;
-  const label = severity.charAt(0).toUpperCase() + severity.slice(1);
+  const label = severity[0].toUpperCase() + severity.slice(1);
   return (
     <span className={"sev sev-" + severity}>
       <span className="dot" />
@@ -29,14 +29,12 @@ function timeUntil(dateISO) {
   if (!dateISO) return "";
   const target = new Date(dateISO + "T00:00:00");
   if (isNaN(target)) return "";
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diffMs = target - today;
-  const days = Math.round(diffMs / 86400000);
-  if (days < 0) return `${Math.abs(days)}d ago`;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const days = Math.round((target - today) / 86400000);
+  if (days < 0)  return `${Math.abs(days)}d ago`;
   if (days === 0) return "today";
   if (days === 1) return "tomorrow";
-  if (days < 7) return `in ${days}d`;
+  if (days < 7)  return `in ${days}d`;
   if (days < 14) return "next week";
   return `in ${Math.round(days / 7)}w`;
 }
@@ -48,15 +46,15 @@ function initialsOf(name) {
 
 function QueueRow({ booking, selected, onSelect }) {
   const p = physicianById(booking.physicianId);
-  const intake = booking.intake || {};
-  const appt = booking.appointment || {};
-  const isoForDate = appt.dateISO || booking.dateISO;
-  const dateObj = isoForDate ? new Date(isoForDate + "T00:00:00") : null;
+  const intake = booking.intake ?? {};
+  const appt = booking.appointment ?? {};
+  const iso = appt.dateISO ?? booking.dateISO;
+  const dateObj = iso ? new Date(iso + "T00:00:00") : null;
   const dayLabel = dateObj
     ? dateObj.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })
-    : (booking.date || "");
+    : (booking.date ?? "");
   const urgent = intake.severity === "severe";
-  const patientName = booking.patient ? booking.patient.name : "—";
+  const patientName = booking.patient?.name ?? "—";
 
   return (
     <button
@@ -76,19 +74,19 @@ function QueueRow({ booking, selected, onSelect }) {
         </div>
         <div className="meta-row">
           <span style={{ color: "var(--ink-1)" }}>
-            {intake.reasonTitle || booking.reason || "Visit"}
+            {intake.reasonTitle ?? booking.reason ?? "Visit"}
           </span>
           <span className="sep">·</span>
-          <span>{p ? p.name : "Unknown"}</span>
+          <span>{p?.name ?? "Unknown"}</span>
           <span className="sep">·</span>
-          <span style={{ color: "var(--ink-3)" }}>{p ? p.specialty : ""}</span>
+          <span style={{ color: "var(--ink-3)" }}>{p?.specialty ?? ""}</span>
           {intake.duration && <><span className="sep">·</span><span>{intake.duration}</span></>}
         </div>
       </div>
       <div className="right-col">
         <div className="when-line">
-          {dayLabel} · {appt.time || booking.time}
-          <div className="rel">{timeUntil(isoForDate)}</div>
+          {dayLabel} · {appt.time ?? booking.time}
+          <div className="rel">{timeUntil(iso)}</div>
         </div>
         <span className="submitted">
           {booking.createdAt ? "submitted " + relativeTime(booking.createdAt) : ""}

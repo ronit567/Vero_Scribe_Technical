@@ -185,16 +185,15 @@ const SPECIALTIES = [
   "OB-GYN",
 ];
 
-// Deterministic pseudo-random — same date+physician always yields same slots.
-function _hash(str) {
+// Deterministic pseudo-random — same physician+date always yields the same slots.
+function hashSeed(str) {
   let h = 2166136261;
   for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
+    h = Math.imul(h ^ str.charCodeAt(i), 16777619);
   }
   return h >>> 0;
 }
-function _rand(seed) {
+function seededRand(seed) {
   let s = seed;
   return () => {
     s = Math.imul(s ^ (s >>> 15), 2246822507);
@@ -204,23 +203,19 @@ function _rand(seed) {
   };
 }
 
-// Returns { morning: [...], afternoon: [...], evening: [...] }
-// time keys are strings like "8:00 AM"
+const MORNING_POOL   = ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"];
+const AFTERNOON_POOL = ["12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"];
+const EVENING_POOL   = ["4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM"];
+
 function slotsFor(physicianId, dateISO) {
-  const rng = _rand(_hash(physicianId + ":" + dateISO));
-  const dow = new Date(dateISO + "T00:00:00").getDay();
-  // Weekend: very limited
-  const isWeekend = dow === 0 || dow === 6;
-  const morningPool = ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM", "11:00 AM", "11:30 AM"];
-  const afternoonPool = ["12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"];
-  const eveningPool = ["4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM"];
-
+  const rng = seededRand(hashSeed(physicianId + ":" + dateISO));
+  const isWeekend = [0, 6].includes(new Date(dateISO + "T00:00:00").getDay());
   const pick = (pool, prob) => pool.filter(() => rng() < prob);
-  const morning = isWeekend ? [] : pick(morningPool, 0.45);
-  const afternoon = isWeekend ? pick(afternoonPool, 0.2) : pick(afternoonPool, 0.55);
-  const evening = isWeekend ? [] : pick(eveningPool, 0.35);
-
-  return { morning, afternoon, evening };
+  return {
+    morning:   isWeekend ? [] : pick(MORNING_POOL, 0.45),
+    afternoon: pick(AFTERNOON_POOL, isWeekend ? 0.2 : 0.55),
+    evening:   isWeekend ? [] : pick(EVENING_POOL, 0.35),
+  };
 }
 
 function physicianById(id) {

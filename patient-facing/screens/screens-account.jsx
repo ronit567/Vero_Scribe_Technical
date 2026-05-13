@@ -27,7 +27,7 @@ function VisitsScreen({ bookings = [], requestId, onBookNew, onOpenConfirmation,
     Store.update(visit.id, {
       status: "cancelled",
       adminEvents: [
-        ...(visit.adminEvents || []),
+        ...(visit.adminEvents ?? []),
         { at: new Date().toISOString(), action: "cancelled", by: "patient" },
       ],
     });
@@ -157,7 +157,7 @@ function VisitCardUpcoming({ visit, onView, onCancel, onReschedule, onBookAgain 
         )}
         {status === "confirmed" && (
           <>
-            <button className="btn btn-secondary" onClick={() => onReschedule && onReschedule(visit)}>
+            <button className="btn btn-secondary" onClick={() => onReschedule?.(visit)}>
               Reschedule
             </button>
             <button className="btn btn-ghost" style={ghostBtnSm} onClick={() => onCancel(visit)}>

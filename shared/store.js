@@ -1,47 +1,31 @@
 // vero — bookings store (localStorage-backed, cross-tab + same-tab subscribe)
 
-(function () {
-  const KEY = "vero.bookings.v1";
+const STORE_KEY = "vero.bookings.v1";
+localStorage.removeItem(STORE_KEY); // demo mode — reset on every page load
 
-  // Reset bookings on every page load — demo mode.
-  localStorage.removeItem(KEY);
+const readStore = () => {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || "[]"); }
+  catch { return []; }
+};
+const writeStore = (all) => {
+  localStorage.setItem(STORE_KEY, JSON.stringify(all));
+  window.dispatchEvent(new Event(STORE_KEY));
+};
 
-  function read() {
-    try {
-      return JSON.parse(localStorage.getItem(KEY) || "[]");
-    } catch (e) {
-      return [];
-    }
-  }
-  function write(all) {
-    localStorage.setItem(KEY, JSON.stringify(all));
-    window.dispatchEvent(new Event(KEY));
-  }
-
-  window.Store = {
-    KEY,
-    list() {
-      return read();
-    },
-    add(booking) {
-      const all = read();
-      all.unshift(booking);
-      write(all);
-    },
-    update(id, patch) {
-      const all = read().map((b) => (b.id === id ? { ...b, ...patch } : b));
-      write(all);
-    },
-    subscribe(cb) {
-      const handler = (e) => {
-        if (!e || e.type === KEY || e.key === KEY || e.key === null) cb(read());
-      };
-      window.addEventListener("storage", handler);
-      window.addEventListener(KEY, handler);
-      return () => {
-        window.removeEventListener("storage", handler);
-        window.removeEventListener(KEY, handler);
-      };
-    },
-  };
-})();
+window.Store = {
+  KEY: STORE_KEY,
+  list: readStore,
+  add: (b) => writeStore([b, ...readStore()]),
+  update: (id, patch) => writeStore(readStore().map((b) => b.id === id ? { ...b, ...patch } : b)),
+  subscribe(cb) {
+    const handler = (e) => {
+      if (!e || e.type === STORE_KEY || e.key === STORE_KEY || e.key === null) cb(readStore());
+    };
+    window.addEventListener("storage", handler);
+    window.addEventListener(STORE_KEY, handler);
+    return () => {
+      window.removeEventListener("storage", handler);
+      window.removeEventListener(STORE_KEY, handler);
+    };
+  },
+};

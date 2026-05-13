@@ -42,14 +42,12 @@ function StatCard({ label, value, delta, deltaTone, active, onClick }) {
          onClick={onClick}>
       <span className="label">{label}</span>
       <span className="value">{value}</span>
-      {delta && <span className={"delta " + (deltaTone || "")}>{delta}</span>}
+      {delta && <span className={"delta " + (deltaTone ?? "")}>{delta}</span>}
     </div>
   );
 }
 
-function bookingDateISO(b) {
-  return (b.appointment && b.appointment.dateISO) || b.dateISO;
-}
+const bookingDateISO = (b) => b.appointment?.dateISO ?? b.dateISO;
 
 function daysUntil(iso) {
   if (!iso) return Infinity;
@@ -65,24 +63,24 @@ const isThisWeek = (iso) => { const n = daysUntil(iso); return n >= 0 && n <= 7;
 const SEV_RANK = { severe: 0, moderate: 1, mild: 2 };
 
 function AdminApp() {
-  const [bookings, setBookings]   = React.useState(() => Store.list());
-  const [status, setStatus]       = React.useState("all");
+  const [bookings, setBookings]       = React.useState(() => Store.list());
+  const [status, setStatus]           = React.useState("all");
   const [physicianId, setPhysicianId] = React.useState("all");
-  const [query, setQuery]         = React.useState("");
+  const [query, setQuery]             = React.useState("");
   const [quickFilter, setQuickFilter] = React.useState("all");
-  const [sortBy, setSortBy]       = React.useState("submitted");
-  const [selectedId, setSelectedId] = React.useState(null);
+  const [sortBy, setSortBy]           = React.useState("submitted");
+  const [selectedId, setSelectedId]   = React.useState(null);
 
   React.useEffect(() => Store.subscribe(setBookings), []);
 
   const counts = React.useMemo(() => {
     const c = { all: bookings.length, pending: 0, confirmed: 0, declined: 0, cancelled: 0, today: 0, week: 0, urgent: 0 };
     for (const b of bookings) {
-      c[b.status] = (c[b.status] || 0) + 1;
+      c[b.status] = (c[b.status] ?? 0) + 1;
       const iso = bookingDateISO(b);
-      if (isToday(iso)) c.today++;
+      if (isToday(iso))    c.today++;
       if (isThisWeek(iso)) c.week++;
-      if (b.intake && b.intake.severity === "severe" && b.status === "pending") c.urgent++;
+      if (b.intake?.severity === "severe" && b.status === "pending") c.urgent++;
     }
     return c;
   }, [bookings]);
@@ -92,39 +90,38 @@ function AdminApp() {
     const matchSearch = (b) => {
       if (!q) return true;
       const p = physicianById(b.physicianId);
-      return [b.patient && b.patient.name, p && p.name, p && p.specialty,
-              b.intake && b.intake.reasonTitle, b.id]
+      return [b.patient?.name, p?.name, p?.specialty, b.intake?.reasonTitle, b.id]
         .filter(Boolean).join(" ").toLowerCase().includes(q);
     };
-    const out = bookings.filter((b) => {
-      if (status !== "all" && b.status !== status) return false;
-      if (physicianId !== "all" && b.physicianId !== physicianId) return false;
-      const iso = bookingDateISO(b);
-      if (quickFilter === "today"  && !isToday(iso))    return false;
-      if (quickFilter === "week"   && !isThisWeek(iso)) return false;
-      if (quickFilter === "urgent" && !(b.intake && b.intake.severity === "severe")) return false;
-      return matchSearch(b);
-    });
-    return [...out].sort((a, b) => {
-      if (sortBy === "appointment") {
-        return (bookingDateISO(a) || "").localeCompare(bookingDateISO(b) || "");
-      }
-      if (sortBy === "severity") {
-        const diff = (SEV_RANK[(a.intake || {}).severity] ?? 3) - (SEV_RANK[(b.intake || {}).severity] ?? 3);
-        if (diff !== 0) return diff;
-      }
-      return (b.createdAt || "").localeCompare(a.createdAt || "");
-    });
+    return bookings
+      .filter((b) => {
+        if (status !== "all" && b.status !== status) return false;
+        if (physicianId !== "all" && b.physicianId !== physicianId) return false;
+        const iso = bookingDateISO(b);
+        if (quickFilter === "today"  && !isToday(iso))    return false;
+        if (quickFilter === "week"   && !isThisWeek(iso)) return false;
+        if (quickFilter === "urgent" && b.intake?.severity !== "severe") return false;
+        return matchSearch(b);
+      })
+      .sort((a, b) => {
+        if (sortBy === "appointment") {
+          return (bookingDateISO(a) ?? "").localeCompare(bookingDateISO(b) ?? "");
+        }
+        if (sortBy === "severity") {
+          const diff = (SEV_RANK[a.intake?.severity] ?? 3) - (SEV_RANK[b.intake?.severity] ?? 3);
+          if (diff !== 0) return diff;
+        }
+        return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
+      });
   }, [bookings, status, physicianId, query, quickFilter, sortBy]);
 
-  const selected = bookings.find((b) => b.id === selectedId) || null;
+  const selected = bookings.find((b) => b.id === selectedId) ?? null;
 
   const pushEvent = (id, action) => {
     const b = bookings.find((x) => x.id === id);
-    const prev = (b && b.adminEvents) || [];
     Store.update(id, {
       status: action,
-      adminEvents: [...prev, { at: new Date().toISOString(), action }],
+      adminEvents: [...(b?.adminEvents ?? []), { at: new Date().toISOString(), action }],
     });
   };
 
