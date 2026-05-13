@@ -113,7 +113,7 @@ function App() {
           visitType: draft.visitType, location: p?.location ?? null,
         },
         intake: {
-          reason: draft.reason, reasonTitle, notes: draft.notes,
+          reasonTitle, notes: draft.notes,
           duration: draft.duration, severity: draft.severity, trend: draft.trend,
           priorTreatment: draft.priorTreatment,
           medications: draft.medications, allergies: draft.allergies,

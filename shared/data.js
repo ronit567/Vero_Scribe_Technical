@@ -189,7 +189,6 @@ const MORNING_POOL   = ["8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", 
 const AFTERNOON_POOL = ["12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM", "3:00 PM", "3:30 PM", "4:00 PM"];
 const EVENING_POOL   = ["4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM"];
 
-// Same physician+date always yields the same slots — a deterministic mask, not real randomness.
 function slotsFor(physicianId, dateISO) {
   let seed = 0;
   for (const c of physicianId + dateISO) seed = (seed * 31 + c.charCodeAt(0)) | 0;
@@ -207,13 +206,11 @@ function physicianById(id) {
 }
 
 const DEMO_PATIENT = {
-  id: "p-bill",
   name: "Bill S.",
   dob: "1989-08-04",
   memberId: "BC-4837-2210",
   phone: "•••• 4421",
   email: "bill@verohealth.example",
-  initials: "BS",
 };
 
 window.PHYSICIANS = PHYSICIANS;
